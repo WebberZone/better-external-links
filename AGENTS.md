@@ -9,6 +9,13 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 - No suggestions outside the scope of what was asked
 - Skip preamble and trailing summaries
 
+## Links
+
+- GitHub: <https://github.com/WebberZone/webberzone-link-warnings>
+- WordPress.org: <https://wordpress.org/plugins/webberzone-link-warnings/>
+- Documentation: <https://webberzone.com/support/product/link-warnings/>
+- webberzone.com: <https://webberzone.com/plugins/webberzone-link-warnings/>
+
 ## Plugin Overview
 
 **WebberZone Link Warnings** (v1.4.0) adds configurable warnings to external links, affiliate links, or any URL pattern — displaying a modal countdown or inline icon before the visitor leaves the site. Namespace: `WebberZone\Link_Warnings`. Constants: `WZLW_VERSION`, `WZLW_PLUGIN_FILE`, `WZLW_PLUGIN_DIR`, `WZLW_PLUGIN_URL`, `WZLW_PLUGIN_BASENAME`. Requires WordPress 6.6+, PHP 7.4+. No Freemius.
