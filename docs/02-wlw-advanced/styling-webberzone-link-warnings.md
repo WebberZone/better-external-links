@@ -232,6 +232,18 @@ Key classes for the modal:
 <td>The button row.</td>
 </tr>
 <tr>
+<td><code>wzlw-modal-dismiss</code></td>
+<td>The "Don't show again" checkbox wrapper (only rendered when Modal Frequency is not "Always").</td>
+</tr>
+<tr>
+<td><code>wzlw-modal-dismiss-input</code></td>
+<td>The checkbox input.</td>
+</tr>
+<tr>
+<td><code>wzlw-modal-dismiss-label</code></td>
+<td>The checkbox label.</td>
+</tr>
+<tr>
 <td><code>wzlw-modal-cancel</code></td>
 <td>The cancel button.</td>
 </tr>
