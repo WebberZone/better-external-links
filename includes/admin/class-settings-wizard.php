@@ -108,6 +108,10 @@ class Settings_Wizard extends Settings_Wizard_API {
 			'modal_message',
 			'modal_continue_text',
 			'modal_cancel_text',
+			'modal_frequency',
+			'modal_frequency_days',
+			'modal_frequency_scope',
+			'modal_dismiss_text',
 		);
 
 		$content_keys = array(

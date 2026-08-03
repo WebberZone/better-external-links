@@ -5,7 +5,7 @@ Donate link: https://ajaydsouza.com/donate/
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,6 +30,7 @@ WebberZone Link Warnings uses a two-layer approach to process links across your 
 * __Flexible Scope__: Target external links only, or external links plus all `target="_blank"` links
 * __Customizable Indicators__: Configure visual icons, text, or screen reader-only warnings
 * __Modal Dialog__: Show a confirmation dialog before users navigate to external sites with keyboard navigation and focus management
+* __Dismissible Modals__: Let repeat visitors tick "Don't show again" so the modal is skipped for a session or for a set number of days, per destination domain or sitewide
 * __Redirect Screen__: Display an intermediate page with a configurable countdown before external navigation
 * __Force External__: Add a class to any link or wrapper element to force it to be treated as external — useful for affiliate links or tracking URLs that use internal paths
 * __Domain Exclusions__: Allow trusted domains to treat them as internal links
@@ -73,6 +74,7 @@ __Visual Indicators:__
 __Advanced Settings:__
 
 * Custom modal messages and button text
+* Modal frequency, dismissal scope and "Don't show again" label
 * Custom redirect page content and countdown duration
 * Domain exclusion list
 * Post type selection
@@ -185,6 +187,16 @@ Yes. Go to Settings > WebberZone Link Warnings > Display tab and find the "Icon 
 
 **Using Custom Icons:** Select "Custom" and enter any Unicode symbol or emoji in the "Custom Icon" field. Examples: →, ⇗, 🔗, 🌐, *, +
 
+= Can visitors stop the modal from showing every time? =
+
+Yes. Go to Settings > WebberZone Link Warnings > Display and set "Modal Frequency" to either "Once per browser session" or "Once every N days". The modal then shows a "Don't show again" checkbox. When a visitor ticks it and clicks Continue, the dismissal is remembered and the link behaves like a normal link on later clicks.
+
+"Dismissal Scope" controls how far that goes. "Per destination domain" suppresses the modal for the domain the visitor dismissed and leaves every other external link alone. "All external links" suppresses it everywhere on the site.
+
+Dismissals live in the visitor's browser, in `sessionStorage` for the session option and `localStorage` for the N days option. No cookies are set and nothing is stored against a user account, so the setting is per browser rather than per person. Clearing site data resets it.
+
+The default is "Always show the modal", which is the behaviour from earlier versions.
+
 = Does this modify my database content? =
 
 No. The plugin only alters rendered output. Your stored content remains unchanged.
@@ -203,6 +215,21 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 2. Modal dialog warning before navigation
 
 == Changelog ==
+
+= 1.5.0 =
+
+**New Features**
+
+* Repeat visitors can now dismiss the modal instead of confirming every external link. Set **Modal Frequency** under Settings > WebberZone Link Warnings > Display to "Once per browser session" or "Once every N days" and the modal gains a "Don't show again" checkbox. Tick it, click Continue, and the modal is skipped on later clicks. The default remains "Always show the modal", so existing sites behave exactly as before.
+* New **Dismissal Scope** setting decides whether a dismissal applies only to the destination domain the visitor dismissed, or to every external link on the site.
+* New **Remember Dismissal For** setting sets how many days a dismissal lasts, from 1 to 365.
+* The checkbox label is configurable via **Don't Show Again Label** and is registered for WPML string translation.
+* Dismissals are stored in the visitor's own browser using `sessionStorage` or `localStorage`. No cookies are set and nothing is written to your database.
+
+**Bug Fixes**
+
+* **Internal `target="_blank"` links inside post content never triggered a warning.** Under the "External links and internal links opening in a new tab" scope, PHP marked these links as processed but wrote no data attributes, so the JavaScript scan skipped them as well. The identical link in a navigation menu or widget did get a warning. PHP now mirrors the JavaScript logic and emits `data-wzlw-blank` for internal new-tab links.
+* The signed redirect URL is no longer added to every processed link when the warning method is modal only. It is emitted for the redirect and inline redirect methods alone, which drops an unused attribute from the rendered HTML and skips a per-link HMAC on modal pages.
 
 = 1.4.0 (23 May 2026) =
 
@@ -269,6 +296,9 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Repeat visitors can now dismiss the modal. Set Modal Frequency to "Once per browser session" or "Once every N days" to add a "Don't show again" checkbox; the default keeps the modal showing every time. Also fixes internal `target="_blank"` links in post content not triggering a warning under the "external links and internal new tab links" scope.
 
 = 1.4.0 =
 Excluded domains now support wildcard subdomains (`*.example.com`) and are honoured by the sitewide JS scan. Plain entries now match the exact domain only — add `*.example.com` alongside `example.com` if you also want subdomains excluded. All four CSS class settings now accept comma-separated values.

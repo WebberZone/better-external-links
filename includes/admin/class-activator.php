@@ -110,18 +110,22 @@ class Activator {
 	public static function single_activate() {
 		// Set default options using Options API.
 		$defaults = array(
-			'warning_method'      => 'inline_modal',
-			'scope'               => 'external',
-			'visual_indicator'    => 'icon',
-			'indicator_text'      => __( '(opens in new window)', 'webberzone-link-warnings' ),
-			'screen_reader_text'  => __( 'Opens in a new window', 'webberzone-link-warnings' ),
-			'modal_title'         => __( 'You are leaving this site', 'webberzone-link-warnings' ),
-			'modal_message'       => __( 'You are about to visit an external website. Continue?', 'webberzone-link-warnings' ),
-			'modal_continue_text' => __( 'Continue', 'webberzone-link-warnings' ),
-			'modal_cancel_text'   => __( 'Cancel', 'webberzone-link-warnings' ),
-			'redirect_message'    => __( 'You are being redirected to an external site.', 'webberzone-link-warnings' ),
-			'excluded_domains'    => '',
-			'enabled_post_types'  => 'post,page',
+			'warning_method'        => 'inline_modal',
+			'scope'                 => 'external',
+			'visual_indicator'      => 'icon',
+			'indicator_text'        => __( '(opens in new window)', 'webberzone-link-warnings' ),
+			'screen_reader_text'    => __( 'Opens in a new window', 'webberzone-link-warnings' ),
+			'modal_title'           => __( 'You are leaving this site', 'webberzone-link-warnings' ),
+			'modal_message'         => __( 'You are about to visit an external website. Continue?', 'webberzone-link-warnings' ),
+			'modal_continue_text'   => __( 'Continue', 'webberzone-link-warnings' ),
+			'modal_cancel_text'     => __( 'Cancel', 'webberzone-link-warnings' ),
+			'modal_frequency'       => 'always',
+			'modal_frequency_days'  => 30,
+			'modal_frequency_scope' => 'domain',
+			'modal_dismiss_text'    => __( 'Don\'t show this warning again', 'webberzone-link-warnings' ),
+			'redirect_message'      => __( 'You are being redirected to an external site.', 'webberzone-link-warnings' ),
+			'excluded_domains'      => '',
+			'enabled_post_types'    => 'post,page',
 		);
 
 		// Use Options API to set defaults (merge=true preserves existing user settings on reactivation).

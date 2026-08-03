@@ -221,6 +221,46 @@ The label for the button that closes the modal and returns the user to the page.
 **Default:** `Cancel`\
 **Setting key:** `modal_cancel_text`
 
+#### Modal Frequency
+
+Controls how often the modal is shown to the same visitor. Leaving this on **Always show the modal** keeps the original behavior — every click on an external link opens the modal.
+
+Choosing either of the other options adds a **Don't show again** checkbox to the modal. When a visitor ticks it and clicks Continue, the dismissal is stored in their browser and the modal is skipped for subsequent clicks — the link then behaves like a normal link.
+
+- **Always show the modal** — no checkbox, the modal always appears.
+- **Once per browser session** — the dismissal is stored in `sessionStorage` and cleared when the browser tab is closed.
+- **Once every N days** — the dismissal is stored in `localStorage` and expires after the number of days set below.
+
+Dismissals are stored per browser, not per user account, so nothing is written to your database.
+
+**Default:** `always`\
+**Setting key:** `modal_frequency`
+
+#### Remember Dismissal For
+
+The number of days a dismissal is remembered. Only used when the frequency is set to **Once every N days**.
+
+**Default:** `30`\
+**Range:** 1–365\
+**Setting key:** `modal_frequency_days`
+
+#### Dismissal Scope
+
+Determines how broadly a dismissal applies.
+
+- **Per destination domain** — dismissing the warning for `example.com` suppresses the modal for that domain only. Other external links still show the warning.
+- **All external links** — a single dismissal suppresses the modal for every external link on the site.
+
+**Default:** `domain`\
+**Setting key:** `modal_frequency_scope`
+
+#### Don't Show Again Label
+
+The label displayed next to the checkbox in the modal.
+
+**Default:** `Don't show this warning again`\
+**Setting key:** `modal_dismiss_text`
+
 ### Redirect Screen
 
 These settings control the interstitial redirect page shown when the warning method includes a redirect component (`redirect` or `inline_redirect`).

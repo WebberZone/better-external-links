@@ -147,10 +147,15 @@ class Content_Processor {
 			}
 
 			// Add data attributes for JavaScript handling.
-			if ( in_array( $this->settings['warning_method'] ?? 'none', array( 'modal', 'inline_modal', 'redirect', 'inline_redirect' ), true ) ) {
+			$warning_method = $this->settings['warning_method'] ?? 'none';
+			if ( in_array( $warning_method, array( 'modal', 'inline_modal', 'redirect', 'inline_redirect' ), true ) ) {
+				$processor->set_attribute( 'data-wzlw-url', $href );
 				if ( $is_external ) {
 					$processor->set_attribute( 'data-wzlw-external', 'true' );
-					$processor->set_attribute( 'data-wzlw-url', $href );
+				} else {
+					$processor->set_attribute( 'data-wzlw-blank', 'true' );
+				}
+				if ( in_array( $warning_method, array( 'redirect', 'inline_redirect' ), true ) ) {
 					$processor->set_attribute( 'data-wzlw-redirect-url', Redirect_Handler::get_redirect_url( $href ) );
 				}
 			}

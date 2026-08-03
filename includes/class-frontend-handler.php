@@ -107,6 +107,9 @@ class Frontend_Handler {
 				'modalMessage'              => $settings['modal_message'] ?? __( 'You are about to visit an external website. Continue?', 'webberzone-link-warnings' ),
 				'continueText'              => $settings['modal_continue_text'] ?? __( 'Continue', 'webberzone-link-warnings' ),
 				'cancelText'                => $settings['modal_cancel_text'] ?? __( 'Cancel', 'webberzone-link-warnings' ),
+				'modalFrequency'            => $settings['modal_frequency'] ?? 'always',
+				'modalFrequencyDays'        => max( 1, (int) ( $settings['modal_frequency_days'] ?? 30 ) ),
+				'modalFrequencyScope'       => $settings['modal_frequency_scope'] ?? 'domain',
 				'ajaxUrl'                   => admin_url( 'admin-ajax.php' ),
 				'nonce'                     => wp_create_nonce( 'wzlw_sign_urls' ),
 			)
@@ -126,6 +129,9 @@ class Frontend_Handler {
 			return;
 		}
 
+		$show_dismiss = 'always' !== ( $settings['modal_frequency'] ?? 'always' );
+		$dismiss_text = $settings['modal_dismiss_text'] ?? __( 'Don\'t show this warning again', 'webberzone-link-warnings' );
+
 		?>
 		<div id="wzlw-modal" class="wzlw-modal" role="dialog" aria-modal="true" aria-labelledby="wzlw-modal-title" aria-describedby="wzlw-modal-message" hidden>
 			<div class="wzlw-modal-overlay" data-wzlw-close role="presentation"></div>
@@ -137,6 +143,12 @@ class Frontend_Handler {
 					<h2 id="wzlw-modal-title" class="wzlw-modal-title"></h2>
 					<div id="wzlw-modal-message" class="wzlw-modal-message"></div>
 					<div class="wzlw-modal-url"><span class="screen-reader-text"><?php esc_html_e( 'External URL:', 'webberzone-link-warnings' ); ?></span><span class="wzlw-modal-url-value"></span></div>
+					<?php if ( $show_dismiss && '' !== $dismiss_text ) : ?>
+						<div class="wzlw-modal-dismiss">
+							<input type="checkbox" id="wzlw-modal-dismiss" class="wzlw-modal-dismiss-input" data-wzlw-dismiss>
+							<label for="wzlw-modal-dismiss" class="wzlw-modal-dismiss-label"><?php echo esc_html( $dismiss_text ); ?></label>
+						</div>
+					<?php endif; ?>
 					<div class="wzlw-modal-actions">
 						<button type="button" class="wzlw-modal-button wzlw-modal-cancel" data-wzlw-close><?php esc_html_e( 'Cancel', 'webberzone-link-warnings' ); ?></button>
 						<button type="button" class="wzlw-modal-button wzlw-modal-continue" data-wzlw-continue><?php esc_html_e( 'Continue', 'webberzone-link-warnings' ); ?></button>

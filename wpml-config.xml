@@ -8,6 +8,7 @@
 			<key name="modal_message" />
 			<key name="modal_continue_text" />
 			<key name="modal_cancel_text" />
+			<key name="modal_dismiss_text" />
 			<key name="redirect_message" />
 		</key>
 	</admin-texts>

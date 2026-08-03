@@ -18,6 +18,7 @@
 	let modalUrl = null;
 	let modalContinue = null;
 	let modalCancel = null;
+	let modalDismiss = null;
 	let currentLink = null;
 	let focusableElements = [];
 	let firstFocusable = null;
@@ -42,6 +43,7 @@
 		modalUrl = modal.querySelector('.wzlw-modal-url-value');
 		modalContinue = modal.querySelector('[data-wzlw-continue]');
 		modalCancel = modal.querySelector('.wzlw-modal-cancel');
+		modalDismiss = modal.querySelector('[data-wzlw-dismiss]');
 
 		if (settings.modalTitle) modalTitle.textContent = settings.modalTitle;
 		if (settings.modalMessage) modalMessage.textContent = settings.modalMessage;
@@ -65,13 +67,13 @@
 			return;
 		}
 
-		const noIconWrapperClasses        = Array.isArray(settings.noIconWrapperClass) ? settings.noIconWrapperClass : (settings.noIconWrapperClass ? [settings.noIconWrapperClass] : []);
+		const noIconWrapperClasses = Array.isArray(settings.noIconWrapperClass) ? settings.noIconWrapperClass : (settings.noIconWrapperClass ? [settings.noIconWrapperClass] : []);
 		const forceExternalWrapperClasses = Array.isArray(settings.forceExternalWrapperClass) ? settings.forceExternalWrapperClass : (settings.forceExternalWrapperClass ? [settings.forceExternalWrapperClass] : []);
-		const forceExternalClasses        = Array.isArray(settings.forceExternalClass) ? settings.forceExternalClass : (settings.forceExternalClass ? [settings.forceExternalClass] : []);
-		const noIconClasses               = Array.isArray(settings.noIconClass) ? settings.noIconClass : (settings.noIconClass ? [settings.noIconClass] : []);
-		const isInlineMethod            = ['inline', 'inline_modal', 'inline_redirect'].includes(method);
-		const needsDataAttrs            = ['modal', 'inline_modal', 'redirect', 'inline_redirect'].includes(method);
-		const needsRedirectUrl          = ['redirect', 'inline_redirect'].includes(method);
+		const forceExternalClasses = Array.isArray(settings.forceExternalClass) ? settings.forceExternalClass : (settings.forceExternalClass ? [settings.forceExternalClass] : []);
+		const noIconClasses = Array.isArray(settings.noIconClass) ? settings.noIconClass : (settings.noIconClass ? [settings.noIconClass] : []);
+		const isInlineMethod = ['inline', 'inline_modal', 'inline_redirect'].includes(method);
+		const needsDataAttrs = ['modal', 'inline_modal', 'redirect', 'inline_redirect'].includes(method);
+		const needsRedirectUrl = ['redirect', 'inline_redirect'].includes(method);
 
 		const linksNeedingRedirectUrl = [];
 
@@ -81,13 +83,13 @@
 				return;
 			}
 
-			const inNoIconWrapper   = noIconWrapperClasses.length && noIconWrapperClasses.some(function (c) { return link.closest('.' + CSS.escape(c)); });
+			const inNoIconWrapper = noIconWrapperClasses.length && noIconWrapperClasses.some(function (c) { return link.closest('.' + CSS.escape(c)); });
 			const inForceExtWrapper = forceExternalWrapperClasses.length && forceExternalWrapperClasses.some(function (c) { return link.closest('.' + CSS.escape(c)); });
-			const hasForceExtClass  = forceExternalClasses.length && forceExternalClasses.some(function (c) { return link.classList.contains(c); });
-			const hasNoIconClass    = noIconClasses.length && noIconClasses.some(function (c) { return link.classList.contains(c); });
+			const hasForceExtClass = forceExternalClasses.length && forceExternalClasses.some(function (c) { return link.classList.contains(c); });
+			const hasNoIconClass = noIconClasses.length && noIconClasses.some(function (c) { return link.classList.contains(c); });
 
 			const isExternal = !!(inForceExtWrapper || hasForceExtClass || isExternalHref(href));
-			const hasTarget  = '_blank' === link.getAttribute('target');
+			const hasTarget = '_blank' === link.getAttribute('target');
 
 			if (!shouldProcess(isExternal, hasTarget)) {
 				if (inNoIconWrapper && hasTarget) {
@@ -311,7 +313,126 @@
 					}
 				});
 			})
-			.catch(function () {});
+			.catch(function () { });
+	}
+
+	// ─── Dismissal ("Don't show again") ───────────────────────────────────────
+
+	const DISMISS_KEY = 'wzlwDismissed';
+	const frequency = settings.modalFrequency || 'always';
+	const dismissScope = settings.modalFrequencyScope || 'domain';
+
+	/**
+	 * Return the storage backend for the configured frequency, or null when
+	 * dismissals are disabled or storage is unavailable (e.g. private mode).
+	 *
+	 * @return {Storage|null}
+	 */
+	function getDismissStore() {
+		if ('always' === frequency) {
+			return null;
+		}
+		try {
+			return 'session' === frequency ? window.sessionStorage : window.localStorage;
+		} catch (e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Read the stored dismissal map.
+	 *
+	 * @return {Object} Map of scope key to expiry timestamp (0 = session-only).
+	 */
+	function readDismissals() {
+		const store = getDismissStore();
+		if (!store) {
+			return {};
+		}
+		try {
+			const data = JSON.parse(store.getItem(DISMISS_KEY) || '{}');
+			return data && 'object' === typeof data ? data : {};
+		} catch (e) {
+			return {};
+		}
+	}
+
+	/**
+	 * Persist the dismissal map.
+	 *
+	 * @param {Object} data
+	 */
+	function writeDismissals(data) {
+		const store = getDismissStore();
+		if (!store) {
+			return;
+		}
+		try {
+			store.setItem(DISMISS_KEY, JSON.stringify(data));
+		} catch (e) { }
+	}
+
+	/**
+	 * Build the dismissal key for a URL, honouring the configured scope.
+	 *
+	 * @param {string} url
+	 * @return {string} Empty string when no key can be derived.
+	 */
+	function dismissKeyFor(url) {
+		if ('global' === dismissScope) {
+			return '*';
+		}
+		try {
+			return new URL(url, window.location.href).hostname.toLowerCase().replace(/\.$/, '');
+		} catch (e) {
+			return '';
+		}
+	}
+
+	/**
+	 * Determine whether the modal has been dismissed for a URL.
+	 *
+	 * @param {string} url
+	 * @return {boolean}
+	 */
+	function isDismissed(url) {
+		if (!getDismissStore() || !url) {
+			return false;
+		}
+		const key = dismissKeyFor(url);
+		if (!key) {
+			return false;
+		}
+		const data = readDismissals();
+		const expiry = data[key];
+		if ('number' !== typeof expiry) {
+			return false;
+		}
+		if (0 === expiry || Date.now() < expiry) {
+			return true;
+		}
+		delete data[key];
+		writeDismissals(data);
+		return false;
+	}
+
+	/**
+	 * Record a dismissal for a URL.
+	 *
+	 * @param {string} url
+	 */
+	function storeDismissal(url) {
+		if (!getDismissStore() || !url) {
+			return;
+		}
+		const key = dismissKeyFor(url);
+		if (!key) {
+			return;
+		}
+		const days = parseInt(settings.modalFrequencyDays, 10) || 30;
+		const data = readDismissals();
+		data[key] = 'session' === frequency ? 0 : Date.now() + days * 86400000;
+		writeDismissals(data);
 	}
 
 	// ─── Click handling ───────────────────────────────────────────────────────
@@ -341,6 +462,10 @@
 		}
 
 		if ('modal' === method || 'inline_modal' === method) {
+			// Previously dismissed: let the browser follow the link untouched.
+			if (isDismissed(link.getAttribute('data-wzlw-url') || link.getAttribute('href'))) {
+				return;
+			}
 			e.preventDefault();
 			currentLink = link;
 			showModal(link);
@@ -357,6 +482,9 @@
 	function showModal(link) {
 		const url = link.getAttribute('data-wzlw-url');
 		modalUrl.textContent = url;
+		if (modalDismiss) {
+			modalDismiss.checked = false;
+		}
 		if ('_blank' === link.getAttribute('target') && settings.screenReaderText) {
 			modalContinue.setAttribute('aria-label', settings.continueText + ', ' + settings.screenReaderText);
 		} else {
@@ -401,6 +529,9 @@
 			return;
 		}
 		const url = currentLink.getAttribute('data-wzlw-url');
+		if (modalDismiss && modalDismiss.checked) {
+			storeDismissal(url);
+		}
 		if ('_blank' === currentLink.getAttribute('target')) {
 			window.open(url, '_blank', 'noopener,noreferrer');
 		} else {

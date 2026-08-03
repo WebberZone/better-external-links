@@ -37,6 +37,7 @@ WebberZone Link Warnings uses a two-layer approach to process links across your 
 - __Flexible Scope__: Target external links only, or external links plus all `target="_blank"` links
 - __Customizable Indicators__: Configure visual icons, text, or screen reader-only warnings
 - __Modal Dialog__: Show a confirmation dialog before users navigate to external sites with keyboard navigation and focus management
+- __Dismissible Modals__: Let repeat visitors tick "Don't show again" so the modal is skipped for a session or for a set number of days, per destination domain or sitewide
 - __Redirect Screen__: Display an intermediate page with a configurable countdown before external navigation
 - __Force External__: Add a class to any link or wrapper element to force it to be treated as external — useful for affiliate links or tracking URLs that use internal paths
 - __Domain Exclusions__: Allow trusted domains to treat them as internal links
@@ -91,12 +92,32 @@ After activation, the setup wizard guides you through the initial configuration.
 4. __Configure Modal/Redirect__ (if applicable)
    - Modal title and message
    - Button text
+   - Modal frequency, dismissal scope and "Don't show again" label
    - Redirect page content and countdown duration
 
 5. __Advanced Settings__
    - Excluded domains
    - Enabled post types
    - Force-external class name (default: `wzlw-force-external`)
+
+## Letting Visitors Dismiss the Modal
+
+Confirming every external link gets tiring for regular readers. Set __Modal Frequency__ under __Settings > WebberZone Link Warnings > Display__ to one of the following:
+
+- __Always show the modal__ (default): the modal appears on every click, as in earlier versions
+- __Once per browser session__: the dismissal is kept in `sessionStorage` and cleared when the browser tab closes
+- __Once every N days__: the dismissal is kept in `localStorage` and expires after the number of days set in __Remember Dismissal For__
+
+Choosing either of the last two adds a "Don't show again" checkbox to the modal. When a visitor ticks it and clicks Continue, the dismissal is recorded and later clicks follow the link directly, keeping `target="_blank"` behaviour intact.
+
+__Dismissal Scope__ controls the reach of a dismissal:
+
+- __Per destination domain__: dismissing a warning for `example.com` affects that domain only
+- __All external links__: one dismissal suppresses the modal for every external link on the site
+
+Everything is stored in the visitor's browser under the `wzlwDismissed` key. No cookies are set, nothing is written to the database, and no dismissal is tied to a user account, so the state is per browser rather than per person.
+
+The checkbox label comes from the __Don't Show Again Label__ setting and is registered in `wpml-config.xml` for string translation.
 
 ## Excluding Icons on Specific Links
 
@@ -180,6 +201,10 @@ Yes. Post content is processed via standard WordPress filters (`the_content` and
 ### Can I customize the redirect screen template?
 
 Yes. Copy the template file to `your-theme/webberzone-link-warnings/redirect-screen.php` to override the default redirect screen with your own design.
+
+### Can visitors stop the modal from showing every time?
+
+Yes. Set __Modal Frequency__ to "Once per browser session" or "Once every N days" and the modal gains a "Don't show again" checkbox. See [Letting Visitors Dismiss the Modal](#letting-visitors-dismiss-the-modal) for the details.
 
 ### Does this modify my database content?
 

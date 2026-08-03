@@ -308,13 +308,13 @@ class Settings {
 	public static function settings_display() {
 		$settings = array(
 			// Inline Indicators section.
-			'inline_header'       => array(
+			'inline_header'         => array(
 				'id'   => 'inline_header',
 				'name' => '<h3>' . esc_html__( 'Inline Indicators', 'webberzone-link-warnings' ) . '</h3>',
 				'desc' => '',
 				'type' => 'header',
 			),
-			'visual_indicator'    => array(
+			'visual_indicator'      => array(
 				'id'      => 'visual_indicator',
 				'name'    => esc_html__( 'Visual Indicator', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose what visual indicator to display.', 'webberzone-link-warnings' ),
@@ -327,7 +327,7 @@ class Settings {
 					'none' => esc_html__( 'None (screen reader only)', 'webberzone-link-warnings' ),
 				),
 			),
-			'icon_style'          => array(
+			'icon_style'            => array(
 				'id'      => 'icon_style',
 				'name'    => esc_html__( 'Icon Style', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose which icon to display next to external links.', 'webberzone-link-warnings' ),
@@ -335,7 +335,7 @@ class Settings {
 				'default' => 'arrow_ne',
 				'options' => \WebberZone\Link_Warnings\Util\Icon_Helper::get_icon_options(),
 			),
-			'custom_icon'         => array(
+			'custom_icon'           => array(
 				'id'      => 'custom_icon',
 				'name'    => esc_html__( 'Custom Icon', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Enter your custom icon (only used when "Custom" is selected above). You can use Unicode symbols or emojis.', 'webberzone-link-warnings' ),
@@ -343,28 +343,28 @@ class Settings {
 				'default' => '',
 				'size'    => 'small',
 			),
-			'icon_color'          => array(
+			'icon_color'            => array(
 				'id'      => 'icon_color',
 				'name'    => esc_html__( 'Icon Color', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose the color for the icon.', 'webberzone-link-warnings' ),
 				'type'    => 'color',
 				'default' => '#595959',
 			),
-			'icon_background'     => array(
+			'icon_background'       => array(
 				'id'      => 'icon_background',
 				'name'    => esc_html__( 'Icon Background Color', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose the background color for the icon. Leave empty for transparent.', 'webberzone-link-warnings' ),
 				'type'    => 'color',
 				'default' => '',
 			),
-			'indicator_text'      => array(
+			'indicator_text'        => array(
 				'id'      => 'indicator_text',
 				'name'    => esc_html__( 'Indicator Text', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Text displayed next to links (when text indicator is enabled).', 'webberzone-link-warnings' ),
 				'type'    => 'text',
 				'default' => __( '(opens in new window)', 'webberzone-link-warnings' ),
 			),
-			'screen_reader_text'  => array(
+			'screen_reader_text'    => array(
 				'id'      => 'screen_reader_text',
 				'name'    => esc_html__( 'Screen Reader Text', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Hidden text for screen readers.', 'webberzone-link-warnings' ),
@@ -373,56 +373,96 @@ class Settings {
 			),
 
 			// Modal Dialog section.
-			'modal_header'        => array(
+			'modal_header'          => array(
 				'id'   => 'modal_header',
 				'name' => '<h3>' . esc_html__( 'Modal Dialog', 'webberzone-link-warnings' ) . '</h3>',
 				'desc' => '',
 				'type' => 'header',
 			),
-			'modal_title'         => array(
+			'modal_title'           => array(
 				'id'      => 'modal_title',
 				'name'    => esc_html__( 'Modal Title', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Title shown in the modal dialog.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
 				'default' => __( 'You are leaving this site', 'webberzone-link-warnings' ),
 			),
-			'modal_message'       => array(
+			'modal_message'         => array(
 				'id'      => 'modal_message',
 				'name'    => esc_html__( 'Modal Message', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Message shown in the modal dialog.', 'webberzone-link-warnings' ),
 				'type'    => 'textarea',
 				'default' => __( 'You are about to visit an external website. Continue?', 'webberzone-link-warnings' ),
 			),
-			'modal_continue_text' => array(
+			'modal_continue_text'   => array(
 				'id'      => 'modal_continue_text',
 				'name'    => esc_html__( 'Continue Button Text', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Text for the continue button.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
 				'default' => __( 'Continue', 'webberzone-link-warnings' ),
 			),
-			'modal_cancel_text'   => array(
+			'modal_cancel_text'     => array(
 				'id'      => 'modal_cancel_text',
 				'name'    => esc_html__( 'Cancel Button Text', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Text for the cancel button.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
 				'default' => __( 'Cancel', 'webberzone-link-warnings' ),
 			),
+			'modal_frequency'       => array(
+				'id'      => 'modal_frequency',
+				'name'    => esc_html__( 'Modal Frequency', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'How often the modal is shown to the same visitor. Choosing anything other than "Always" adds a "Don\'t show again" checkbox to the modal, which is remembered in the visitor\'s browser.', 'webberzone-link-warnings' ),
+				'type'    => 'select',
+				'default' => 'always',
+				'options' => array(
+					'always'  => esc_html__( 'Always show the modal', 'webberzone-link-warnings' ),
+					'session' => esc_html__( 'Once per browser session', 'webberzone-link-warnings' ),
+					'days'    => esc_html__( 'Once every N days', 'webberzone-link-warnings' ),
+				),
+			),
+			'modal_frequency_days'  => array(
+				'id'      => 'modal_frequency_days',
+				'name'    => esc_html__( 'Remember Dismissal For', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'Number of days a dismissal is remembered. Only used when the frequency is set to "Once every N days".', 'webberzone-link-warnings' ),
+				'type'    => 'number',
+				'default' => 30,
+				'min'     => 1,
+				'max'     => 365,
+				'step'    => 1,
+			),
+			'modal_frequency_scope' => array(
+				'id'      => 'modal_frequency_scope',
+				'name'    => esc_html__( 'Dismissal Scope', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'Whether a dismissal applies only to the destination domain the visitor dismissed, or to every external link on the site.', 'webberzone-link-warnings' ),
+				'type'    => 'select',
+				'default' => 'domain',
+				'options' => array(
+					'domain' => esc_html__( 'Per destination domain', 'webberzone-link-warnings' ),
+					'global' => esc_html__( 'All external links', 'webberzone-link-warnings' ),
+				),
+			),
+			'modal_dismiss_text'    => array(
+				'id'      => 'modal_dismiss_text',
+				'name'    => esc_html__( 'Don\'t Show Again Label', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'Label for the "Don\'t show again" checkbox in the modal.', 'webberzone-link-warnings' ),
+				'type'    => 'text',
+				'default' => __( 'Don\'t show this warning again', 'webberzone-link-warnings' ),
+			),
 
 			// Redirect Screen section.
-			'redirect_header'     => array(
+			'redirect_header'       => array(
 				'id'   => 'redirect_header',
 				'name' => '<h3>' . esc_html__( 'Redirect Screen', 'webberzone-link-warnings' ) . '</h3>',
 				'desc' => '',
 				'type' => 'header',
 			),
-			'redirect_message'    => array(
+			'redirect_message'      => array(
 				'id'      => 'redirect_message',
 				'name'    => esc_html__( 'Redirect Message', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Message shown on the redirect page.', 'webberzone-link-warnings' ),
 				'type'    => 'textarea',
 				'default' => __( 'You are being redirected to an external site.', 'webberzone-link-warnings' ),
 			),
-			'redirect_countdown'  => array(
+			'redirect_countdown'    => array(
 				'id'      => 'redirect_countdown',
 				'name'    => esc_html__( 'Redirect Countdown', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Number of seconds before the automatic redirect takes place. Set to 0 to disable the timed redirect and require the user to click the Continue button on the redirect screen.', 'webberzone-link-warnings' ),
