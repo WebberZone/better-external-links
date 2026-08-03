@@ -310,7 +310,7 @@ Available when the warning method includes a modal or redirect component. Locali
 
 ```js
 wzlwSettings.siteHost                  // Lowercase site hostname (e.g. "example.com").
-wzlwSettings.excludedDomains           // Array of normalized excluded domain strings.
+wzlwSettings.excludedDomains           // Array of normalised excluded domain strings.
 wzlwSettings.scope                     // "external" or "both".
 wzlwSettings.warningMethod             // Active warning method string.
 wzlwSettings.noIconClass               // Array of class names that suppress the indicator.
@@ -324,20 +324,17 @@ wzlwSettings.modalTitle                // Modal heading text.
 wzlwSettings.modalMessage              // Modal body text.
 wzlwSettings.continueText              // Continue button label.
 wzlwSettings.cancelText                // Cancel button label.
-wzlwSettings.modalFrequency            // "always", "session", or "days".
-wzlwSettings.modalFrequencyDays        // Number of days a dismissal is remembered (only used when modalFrequency is "days").
-wzlwSettings.modalFrequencyScope       // "domain" or "global" — the reach of a dismissal.
 wzlwSettings.ajaxUrl                   // WordPress admin-ajax.php URL.
 wzlwSettings.nonce                     // Nonce for the wzlw_sign_urls AJAX action.
 ```
 
 Entries in `excludedDomains` follow the same format as the admin setting: plain strings (e.g. `"example.com"`) match that exact host; strings prefixed with `*.` (e.g. `"*.example.com"`) match subdomains only.
 
-The class arrays are derived from the comma-separated settings `no_icon_class`, `no_icon_wrapper_class`, `force_external_class`, and `force_external_wrapper_class`, normalized to lowercase arrays by the plugin.
+The class arrays are derived from the comma-separated settings `no_icon_class`, `no_icon_wrapper_class`, `force_external_class`, and `force_external_wrapper_class`, normalised to lowercase arrays by the plugin.
 
 ### `wzlwRedirect`
 
-Available on the redirect interstitial page only. Localized on the `wzlw-redirect` handle.
+Available on the redirect interstitial page only. Localised on the `wzlw-redirect` handle.
 
 ```js
 wzlwRedirect.destination // The external URL.
@@ -366,7 +363,7 @@ The plugin adds the following `data-` attributes to processed external links whe
 <tr>
 <td><code>data-wzlw-blank</code></td>
 <td><code>"true"</code> — marks the link as an internal link that opens in a new tab (only added when scope is <code>both</code>).</td>
-<td>PHP and JS</td>
+<td>JS only</td>
 </tr>
 <tr>
 <td><code>data-wzlw-url</code></td>
@@ -375,7 +372,7 @@ The plugin adds the following `data-` attributes to processed external links whe
 </tr>
 <tr>
 <td><code>data-wzlw-redirect-url</code></td>
-<td>The full redirect interstitial URL for this destination. Only added for the <code>redirect</code> and <code>inline_redirect</code> methods.</td>
+<td>The full redirect interstitial URL for this destination.</td>
 <td>PHP and JS</td>
 </tr>
 </tbody>
@@ -413,26 +410,6 @@ The frontend JavaScript binds behavior to data attributes inside the rendered mo
 </figure>
 
 The continue button is also targeted by the JavaScript as `#wzlw-modal-title`, `#wzlw-modal-message`, `.wzlw-modal-url-value`, and `.wzlw-modal-cancel` so its content can be updated from `wzlwSettings`.
-
-When `modalFrequency` is not `"always"`, the modal also renders a `data-wzlw-dismiss` checkbox (`#wzlw-modal-dismiss`). If it is checked when the continue button is clicked, the dismissal is recorded and the modal is skipped on later clicks that match the same key.
-
-## Modal dismissal storage
-
-When `wzlwSettings.modalFrequency` is `"session"` or `"days"`, `modal.js` stores dismissals client-side under a single key, `wzlwDismissed`, as a JSON object mapping a scope key to an expiry timestamp:
-
-```js
-// sessionStorage or localStorage, depending on modalFrequency.
-{
-    "example.com": 1735689600000, // Expires at this Unix timestamp (ms).
-    "*": 0                        // 0 means "for the rest of this session" (modalFrequency: "session").
-}
-```
-
-- **Storage backend** — `sessionStorage` for `modalFrequency: "session"`, `localStorage` for `modalFrequency: "days"`. Nothing is stored when `modalFrequency` is `"always"`.
-- **Scope key** — the destination's lowercase hostname when `modalFrequencyScope` is `"domain"`, or the literal string `"*"` when `modalFrequencyScope` is `"global"`.
-- **Expiry** — `0` for session dismissals; `Date.now() + (modalFrequencyDays * 86400000)` for day-based dismissals. Expired entries are pruned lazily the next time that key is checked.
-
-No cookies are set and nothing is written to the database — dismissals are per browser, not per user account. If storage is unavailable (e.g. private browsing in some browsers), the plugin fails open and shows the modal on every click.
 
 ## CSS handles
 

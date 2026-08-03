@@ -70,6 +70,8 @@
 		const noIconWrapperClasses = Array.isArray(settings.noIconWrapperClass) ? settings.noIconWrapperClass : (settings.noIconWrapperClass ? [settings.noIconWrapperClass] : []);
 		const forceExternalWrapperClasses = Array.isArray(settings.forceExternalWrapperClass) ? settings.forceExternalWrapperClass : (settings.forceExternalWrapperClass ? [settings.forceExternalWrapperClass] : []);
 		const forceExternalClasses = Array.isArray(settings.forceExternalClass) ? settings.forceExternalClass : (settings.forceExternalClass ? [settings.forceExternalClass] : []);
+		const affiliateWrapperClasses = Array.isArray(settings.affiliateWrapperClass) ? settings.affiliateWrapperClass : (settings.affiliateWrapperClass ? [settings.affiliateWrapperClass] : []);
+		const affiliateClasses = Array.isArray(settings.affiliateClass) ? settings.affiliateClass : (settings.affiliateClass ? [settings.affiliateClass] : []);
 		const noIconClasses = Array.isArray(settings.noIconClass) ? settings.noIconClass : (settings.noIconClass ? [settings.noIconClass] : []);
 		const isInlineMethod = ['inline', 'inline_modal', 'inline_redirect'].includes(method);
 		const needsDataAttrs = ['modal', 'inline_modal', 'redirect', 'inline_redirect'].includes(method);
@@ -86,9 +88,13 @@
 			const inNoIconWrapper = noIconWrapperClasses.length && noIconWrapperClasses.some(function (c) { return link.closest('.' + CSS.escape(c)); });
 			const inForceExtWrapper = forceExternalWrapperClasses.length && forceExternalWrapperClasses.some(function (c) { return link.closest('.' + CSS.escape(c)); });
 			const hasForceExtClass = forceExternalClasses.length && forceExternalClasses.some(function (c) { return link.classList.contains(c); });
+			const inAffiliateWrapper = affiliateWrapperClasses.length && affiliateWrapperClasses.some(function (c) { return link.closest('.' + CSS.escape(c)); });
+			const hasAffiliateClass = affiliateClasses.length && affiliateClasses.some(function (c) { return link.classList.contains(c); });
 			const hasNoIconClass = noIconClasses.length && noIconClasses.some(function (c) { return link.classList.contains(c); });
 
-			const isExternal = !!(inForceExtWrapper || hasForceExtClass || isExternalHref(href));
+			const isAffiliate = !!(inAffiliateWrapper || hasAffiliateClass);
+			const isExternal = !!(isAffiliate || inForceExtWrapper || hasForceExtClass || isExternalHref(href));
+			applyLinkAttributes(link, isExternal, isAffiliate);
 			const hasTarget = '_blank' === link.getAttribute('target');
 
 			if (!shouldProcess(isExternal, hasTarget)) {
@@ -137,6 +143,48 @@
 
 		if (linksNeedingRedirectUrl.length) {
 			fetchRedirectUrls(linksNeedingRedirectUrl);
+		}
+	}
+
+	/**
+	 * Apply configured rel and target attributes without replacing existing rel values.
+	 *
+	 * @param {HTMLAnchorElement} link Link to update.
+	 * @param {boolean} isExternal Whether the link is external.
+	 * @param {boolean} isAffiliate Whether the link is an affiliate link.
+	 */
+	function applyLinkAttributes(link, isExternal, isAffiliate) {
+		let attributes = [];
+		if (isExternal) {
+			attributes = attributes.concat(Array.isArray(settings.linkAttributesExternal) ? settings.linkAttributesExternal : []);
+		}
+		if (isAffiliate) {
+			attributes = attributes.concat(Array.isArray(settings.linkAttributesAffiliate) ? settings.linkAttributesAffiliate : []);
+		}
+		attributes = [...new Set(attributes)];
+
+		if (attributes.includes('target_blank')) {
+			link.setAttribute('target', '_blank');
+		}
+
+		const relValues = attributes.filter(function (attribute) {
+			return ['nofollow', 'sponsored', 'ugc'].includes(attribute);
+		});
+		if ('_blank' === link.getAttribute('target')) {
+			['noopener', 'noreferrer'].forEach(function (attribute) {
+				if (attributes.includes(attribute)) {
+					relValues.push(attribute);
+				}
+			});
+		}
+		if (relValues.length) {
+			const existing = (link.getAttribute('rel') || '').trim().split(/\s+/).filter(Boolean);
+			relValues.forEach(function (value) {
+				if (!existing.some(function (existingValue) { return existingValue.toLowerCase() === value; })) {
+					existing.push(value);
+				}
+			});
+			link.setAttribute('rel', existing.join(' '));
 		}
 	}
 
@@ -278,6 +326,22 @@
 			.replace(/</g, '&lt;')
 			.replace(/>/g, '&gt;')
 			.replace(/"/g, '&quot;');
+	}
+
+	/**
+	 * Build the window.open() features string for a link.
+	 *
+	 * noreferrer honours the link's own rel, so sites that want referrers passed to
+	 * affiliate destinations can opt out of it. noopener is always set: unlike a plain
+	 * target="_blank" navigation, window.open() hands the destination a live window.opener
+	 * reference unless it is suppressed here.
+	 *
+	 * @param {HTMLElement} link
+	 * @return {string}
+	 */
+	function windowOpenFeatures(link) {
+		const rel = (link.getAttribute('rel') || '').toLowerCase().split(/\s+/);
+		return rel.indexOf('noreferrer') !== -1 ? 'noopener,noreferrer' : 'noopener';
 	}
 
 	/**
@@ -453,7 +517,7 @@
 			if (redirectUrl) {
 				e.preventDefault();
 				if ('_blank' === link.getAttribute('target')) {
-					window.open(redirectUrl, '_blank', 'noopener,noreferrer');
+					window.open(redirectUrl, '_blank', windowOpenFeatures(link));
 				} else {
 					window.location.href = redirectUrl;
 				}
@@ -533,7 +597,7 @@
 			storeDismissal(url);
 		}
 		if ('_blank' === currentLink.getAttribute('target')) {
-			window.open(url, '_blank', 'noopener,noreferrer');
+			window.open(url, '_blank', windowOpenFeatures(currentLink));
 		} else {
 			window.location.href = url;
 		}

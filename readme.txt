@@ -32,7 +32,9 @@ WebberZone Link Warnings uses a two-layer approach to process links across your 
 * __Modal Dialog__: Show a confirmation dialog before users navigate to external sites with keyboard navigation and focus management
 * __Dismissible Modals__: Let repeat visitors tick "Don't show again" so the modal is skipped for a session or for a set number of days, per destination domain or sitewide
 * __Redirect Screen__: Display an intermediate page with a configurable countdown before external navigation
-* __Force External__: Add a class to any link or wrapper element to force it to be treated as external — useful for affiliate links or tracking URLs that use internal paths
+* __Force External__: Add a class to any link or wrapper element to force it to be treated as external — useful for tracking URLs or redirects that use internal paths
+* __Automatic Link Attributes__: Add `nofollow`, `sponsored`, `ugc`, `noopener`, `noreferrer` and `target="_blank"` to external links, affiliate links, or both — no post edits needed
+* __Affiliate Link Marking__: Flag a link or container with a class and give affiliate links their own attributes
 * __Domain Exclusions__: Allow trusted domains to treat them as internal links
 * __Sitewide Coverage__: Links in navigation menus, footers, sidebars, widgets, and theme output are processed alongside post content
 * __Post Type Control__: PHP-side processing is scoped to configured post types; JS scanning covers the full page regardless
@@ -76,6 +78,8 @@ __Advanced Settings:__
 * Custom modal messages and button text
 * Modal frequency, dismissal scope and "Don't show again" label
 * Custom redirect page content and countdown duration
+* Link attributes for external and affiliate links (`nofollow`, `sponsored`, `ugc`, open in a new tab, `noopener`, `noreferrer`)
+* Affiliate link class and wrapper class (defaults: `wzlw-affiliate`, `wzlw-affiliate-wrapper`)
 * Domain exclusion list
 * Post type selection
 * Force-external class name (default: `wzlw-force-external`)
@@ -128,7 +132,9 @@ WebberZone Link Warnings is one of the many plugins developed by WebberZone. Che
 
 = Does this plugin affect SEO? =
 
-No. WebberZone Link Warnings only modifies how links are displayed to users. It does not alter the href attribute, link structure, or indexing behaviour. Search engines see your links exactly as you created them.
+Out of the box, no. WebberZone Link Warnings only modifies how links are displayed to users and never alters the `href` attribute or link structure.
+
+If you enable the __Link Attributes__ settings under Settings > WebberZone Link Warnings > Advanced, the plugin will add `rel` and `target` attributes to matching links, which is a deliberate SEO signal that you control. Attributes on links inside post content are written server-side and are present in the HTML that search engines download. Attributes on links elsewhere on the page — navigation menus, widgets, footers and other theme output — are applied by the JavaScript scan after the page loads, so they are only visible to crawlers that execute JavaScript.
 
 = Is it accessible? =
 
@@ -157,6 +163,30 @@ To force all links inside a container, add `wzlw-force-external-wrapper` to the 
 `<div class="wzlw-force-external-wrapper"><a href="/go/product-a/">Product A</a><a href="/go/product-b/">Product B</a></div>`
 
 Both class names are configurable under Settings > WebberZone Link Warnings > Advanced.
+
+= How do I add rel="nofollow" or rel="sponsored" automatically? =
+
+Go to Settings > WebberZone Link Warnings > Advanced and use the __Link Attributes__ section. Tick any combination of `rel="nofollow"`, `rel="sponsored"`, `rel="ugc"`, "Open in a new tab", `rel="noopener"` and `rel="noreferrer"` under __External Links__, __Affiliate Links__, or both.
+
+Attributes already on your links are kept. A link that carries `rel="me author"` becomes `rel="me author nofollow"` rather than losing its original values, and a link that already has `rel="NoFollow"` is not given a second copy — matching ignores case.
+
+`noopener` and `noreferrer` are only added to links that actually open in a new tab, either because the link already has `target="_blank"` or because you enabled the new-tab option. Every option is off by default and nothing is added unless you tick it — the plugin has never rewritten `rel` on your links before this version.
+
+They are deliberately separate options. Current browsers already imply `noopener` for `target="_blank"`, so ticking it mainly satisfies security scanners and older browsers and costs you nothing. `noreferrer` is the one with a behavioural cost: it also stops the referrer being sent, so leave it unticked for affiliate links if your merchant relies on the referrer for attribution.
+
+= How do I mark affiliate links? =
+
+Add the class `wzlw-affiliate` directly to the `<a>` tag:
+
+`<a href="https://merchant.example.com/product" class="wzlw-affiliate">Buy now</a>`
+
+To mark every link inside a container, add `wzlw-affiliate-wrapper` to the wrapper element instead:
+
+`<div class="wzlw-affiliate-wrapper"><a href="https://merchant.example.com/a">Product A</a><a href="https://merchant.example.com/b">Product B</a></div>`
+
+Affiliate links receive both the __External Links__ and __Affiliate Links__ attribute sets. Both class names are configurable and accept comma-separated values under Settings > WebberZone Link Warnings > Advanced.
+
+Note that marking a link as an affiliate link also treats it as external for warning purposes, exactly like the force-external class. An internal cloaked URL such as `/go/product/` will show your configured modal, redirect screen or indicator, and a domain on your exclusion list will show a warning if you also give the link an affiliate class.
 
 = How can I prevent icons from appearing on specific links? =
 
@@ -220,11 +250,21 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 **New Features**
 
+* New **Link Attributes** section under Settings > WebberZone Link Warnings > Advanced adds `rel` and `target` attributes to your links automatically. Pick any combination of `rel="nofollow"`, `rel="sponsored"`, `rel="ugc"`, "Open in a new tab" (`target="_blank"`), `rel="noopener"` and `rel="noreferrer"`, configured separately for external links and for affiliate links.
+* Existing `rel` values are preserved rather than overwritten, and matching ignores case. A link with `rel="me author"` becomes `rel="me author nofollow"`, and a link that already has `rel="NoFollow"` is not given a duplicate.
+* `noopener` and `noreferrer` are separate options and are only added to links that actually open in a new tab — either because the link already carries `target="_blank"` or because you enabled the new-tab option. They are kept apart because `noreferrer` also stops the referrer being sent, which can break referrer-based affiliate attribution, while `noopener` is a pure security hint.
+* New **Affiliate Link Class** (default `wzlw-affiliate`) and **Affiliate Link Wrapper Class** (default `wzlw-affiliate-wrapper`) settings mark a single link, or every link inside a container, as an affiliate link. Both accept comma-separated values, and affiliate links receive both the external and the affiliate attribute sets.
+* Links marked as affiliate links are also treated as external for warning purposes, so an internal cloaked URL such as `/go/product/` shows the same modal, redirect screen or indicator as a genuine outbound link. This mirrors how the force-external class already behaves and takes precedence over the excluded domains list.
+* Attributes are applied by both processing layers — `WP_HTML_Tag_Processor` for post content, and the sitewide JavaScript scan for navigation menus, footers, sidebars, widgets and other theme output.
 * Repeat visitors can now dismiss the modal instead of confirming every external link. Set **Modal Frequency** under Settings > WebberZone Link Warnings > Display to "Once per browser session" or "Once every N days" and the modal gains a "Don't show again" checkbox. Tick it, click Continue, and the modal is skipped on later clicks. The default remains "Always show the modal", so existing sites behave exactly as before.
 * New **Dismissal Scope** setting decides whether a dismissal applies only to the destination domain the visitor dismissed, or to every external link on the site.
 * New **Remember Dismissal For** setting sets how many days a dismissal lasts, from 1 to 365.
 * The checkbox label is configurable via **Don't Show Again Label** and is registered for WPML string translation.
 * Dismissals are stored in the visitor's own browser using `sessionStorage` or `localStorage`. No cookies are set and nothing is written to your database.
+
+**Improvements**
+
+* The Advanced tab is now split under two headings, **Link Attributes** and **Exclusions and Classes**, so the domain exclusion and class settings are no longer grouped under the attribute options.
 
 **Bug Fixes**
 
@@ -298,7 +338,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 == Upgrade Notice ==
 
 = 1.5.0 =
-Repeat visitors can now dismiss the modal. Set Modal Frequency to "Once per browser session" or "Once every N days" to add a "Don't show again" checkbox; the default keeps the modal showing every time. Also fixes internal `target="_blank"` links in post content not triggering a warning under the "external links and internal new tab links" scope.
+New Link Attributes settings under Advanced add `rel="nofollow"`, `sponsored`, `ugc`, `target="_blank"`, `noopener` and `noreferrer` to external and affiliate links automatically, keeping any `rel` values your links already have. New `wzlw-affiliate` and `wzlw-affiliate-wrapper` classes mark affiliate links; note that affiliate-marked links are also treated as external for warnings, which overrides the excluded domains list for those links. Repeat visitors can also now dismiss the modal — set Modal Frequency to "Once per browser session" or "Once every N days" to add a "Don't show again" checkbox; the default keeps the modal showing every time. Also fixes internal `target="_blank"` links in post content not triggering a warning under the "external links and internal new tab links" scope.
 
 = 1.4.0 =
 Excluded domains now support wildcard subdomains (`*.example.com`) and are honoured by the sitewide JS scan. Plain entries now match the exact domain only — add `*.example.com` alongside `example.com` if you also want subdomains excluded. All four CSS class settings now accept comma-separated values.

@@ -105,11 +105,24 @@ class Redirect_Handler {
 	/**
 	 * Validate URL.
 	 *
+	 * Accepts root-relative paths (same-site) and absolute URLs pointing at a different host.
+	 *
 	 * @since 1.0.0
 	 * @param string $url URL to validate.
 	 * @return bool True if valid.
 	 */
 	protected function is_valid_url( $url ) {
+		$parsed_url = wp_parse_url( $url );
+
+		// Root-relative paths (e.g. cloaked affiliate links like /go/product/) are same-site and
+		// valid redirect targets on their own. A missing host is not sufficient to prove this:
+		// browsers resolve scheme-bearing, authority-less URLs such as "http:evil.com" against the
+		// remote host whenever the scheme differs from the page's, so require the scheme to be
+		// absent too.
+		if ( is_array( $parsed_url ) && empty( $parsed_url['host'] ) && empty( $parsed_url['scheme'] ) && ! empty( $parsed_url['path'] ) ) {
+			return true;
+		}
+
 		// Basic validation.
 		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
 			return false;
@@ -117,7 +130,7 @@ class Redirect_Handler {
 
 		// Must be external.
 		$site_host = strtolower( rtrim( (string) wp_parse_url( home_url(), PHP_URL_HOST ), '.' ) );
-		$url_host  = strtolower( rtrim( (string) wp_parse_url( $url, PHP_URL_HOST ), '.' ) );
+		$url_host  = strtolower( rtrim( (string) ( $parsed_url['host'] ?? '' ), '.' ) );
 
 		return $url_host !== $site_host;
 	}

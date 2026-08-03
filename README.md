@@ -39,7 +39,9 @@ WebberZone Link Warnings uses a two-layer approach to process links across your 
 - __Modal Dialog__: Show a confirmation dialog before users navigate to external sites with keyboard navigation and focus management
 - __Dismissible Modals__: Let repeat visitors tick "Don't show again" so the modal is skipped for a session or for a set number of days, per destination domain or sitewide
 - __Redirect Screen__: Display an intermediate page with a configurable countdown before external navigation
-- __Force External__: Add a class to any link or wrapper element to force it to be treated as external — useful for affiliate links or tracking URLs that use internal paths
+- __Force External__: Add a class to any link or wrapper element to force it to be treated as external — useful for tracking URLs or redirects that use internal paths
+- __Automatic Link Attributes__: Add `nofollow`, `sponsored`, `ugc`, `noopener`, `noreferrer` and `target="_blank"` to external links, affiliate links, or both — no post edits needed
+- __Affiliate Link Marking__: Flag a link or container with a class and give affiliate links their own attributes
 - __Domain Exclusions__: Allow trusted domains to treat them as internal links
 - __Sitewide Coverage__: Links in navigation menus, footers, sidebars, widgets, and theme output are processed alongside post content
 - __Post Type Control__: PHP-side processing is scoped to configured post types; JS scanning covers the full page regardless
@@ -96,6 +98,8 @@ After activation, the setup wizard guides you through the initial configuration.
    - Redirect page content and countdown duration
 
 5. __Advanced Settings__
+   - Link attributes for external and affiliate links (`nofollow`, `sponsored`, `ugc`, open in a new tab, `noopener`, `noreferrer`)
+   - Affiliate link class and wrapper class (defaults: `wzlw-affiliate`, `wzlw-affiliate-wrapper`)
    - Excluded domains
    - Enabled post types
    - Force-external class name (default: `wzlw-force-external`)
@@ -156,6 +160,56 @@ To force all links inside a container, add `wzlw-force-external-wrapper` to the 
 
 Both class names are configurable under __Settings > WebberZone Link Warnings > Advanced__.
 
+## Adding rel and target Attributes Automatically
+
+The __Link Attributes__ section under __Settings > WebberZone Link Warnings > Advanced__ adds attributes to your links at render time. Tick any combination of the following, separately for __External Links__ and __Affiliate Links__:
+
+- `rel="nofollow"`
+- `rel="sponsored"`
+- `rel="ugc"`
+- Open in a new tab (`target="_blank"`)
+- `rel="noopener"` for new-tab links
+- `rel="noreferrer"` for new-tab links
+
+Everything is off by default, so nothing changes until you opt in.
+
+Attributes already present on a link are kept rather than overwritten, and matching ignores case:
+
+```html
+<!-- source -->
+<a href="https://example.com/" rel="me author">Example</a>
+
+<!-- rendered with nofollow enabled -->
+<a href="https://example.com/" rel="me author nofollow">Example</a>
+```
+
+A link that already carries `rel="NoFollow"` is not given a duplicate.
+
+`noopener` and `noreferrer` are only applied to links that actually open in a new tab — either the link already has `target="_blank"`, or you enabled the new-tab option.
+
+They are separate options on purpose. Current browsers already imply `noopener` for `target="_blank"`, so ticking it mainly satisfies security scanners and older browsers and costs you nothing. `noreferrer` is the one with a behavioural cost — it also suppresses the referrer, so leave it off for affiliate links if your merchant relies on the referrer for attribution.
+
+## Marking Affiliate Links
+
+To mark a single link as an affiliate link, add the class `wzlw-affiliate` directly to the `<a>` tag:
+
+```html
+<a href="https://merchant.example.com/product" class="wzlw-affiliate">Buy now</a>
+```
+
+To mark every link inside a container, add `wzlw-affiliate-wrapper` to the wrapper element:
+
+```html
+<div class="wzlw-affiliate-wrapper">
+  <a href="https://merchant.example.com/a">Product A</a>
+  <a href="https://merchant.example.com/b">Product B</a>
+</div>
+```
+
+Affiliate links receive both the __External Links__ and __Affiliate Links__ attribute sets, so external `nofollow` plus affiliate `sponsored` produces `rel="nofollow sponsored"`. Both class names are configurable and accept comma-separated values.
+
+> Marking a link as an affiliate link also treats it as external for warning purposes, exactly like the force-external class. An internal cloaked URL such as `/go/product/` will show your configured modal, redirect screen or indicator, and a domain on your exclusion list will still show a warning if you give the link an affiliate class.
+
 ## Customizing Icons
 
 You can choose from several preset icons or enter your own:
@@ -184,7 +238,9 @@ To use a custom icon:
 
 ### Does this plugin affect SEO?
 
-No. WebberZone Link Warnings only modifies how links are displayed to users. It does not alter the href attribute, link structure, or indexing behaviour. Search engines see your links exactly as you created them.
+Out of the box, no. WebberZone Link Warnings only modifies how links are displayed to users and never alters the `href` attribute or link structure.
+
+If you enable the __Link Attributes__ settings under __Settings > WebberZone Link Warnings > Advanced__, the plugin adds `rel` and `target` attributes to matching links, which is a deliberate SEO signal that you control. Attributes on links inside post content are written server-side and are present in the HTML search engines download. Attributes on links elsewhere on the page — navigation menus, widgets, footers and other theme output — are applied by the JavaScript scan after the page loads, so they are only visible to crawlers that execute JavaScript.
 
 ### Is it accessible?
 

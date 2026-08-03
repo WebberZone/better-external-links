@@ -36,7 +36,7 @@ On first activation, an admin notice appears offering a guided setup wizard. It 
 1. **Welcome** — introduction and the option to skip the wizard.
 2. **General Settings** — warning method and link scope.
 3. **Visual Indicators** — icon, text, both, or screen-reader-only, plus screen reader text.
-4. **Modal Dialog** — title, message, button text, modal frequency, and dismissal scope (shown when the warning method includes a modal component).
+4. **Modal Dialog** — title, message, and button text (shown when the warning method includes a modal component).
 5. **Redirect Screen** — message and countdown duration (shown when the warning method includes a redirect component).
 
 You can dismiss the wizard at any time and configure settings manually.
@@ -57,13 +57,13 @@ WebberZone Link Warnings does not modify your stored content. It filters rendere
 
 For each `<a>` tag in the output, the plugin:
 
-1. Checks whether the current post type is enabled in settings.
-2. Determines whether the link is external by comparing its host against the site host and the excluded domains list.
-3. Applies scope rules — external links only, or external links plus internal `target="_blank"` links.
-4. Adds CSS classes (`wzlw-processed`, `wzlw-external`) for styling.
-5. Appends the configured screen reader text to any existing `aria-label` attribute.
-6. For modal and redirect methods, adds `data-wzlw-url` and either `data-wzlw-external` (external links) or `data-wzlw-blank` (internal links opening in a new tab, scope `both` only) — plus `data-wzlw-redirect-url` for the redirect methods specifically. These attributes are used by the frontend JavaScript.
-7. For inline methods, appends visual indicator markup (icon, text, or both) inside the link.
+1.  Checks whether the current post type is enabled in settings.
+2.  Determines whether the link is external by comparing its host against the site host and the excluded domains list.
+3.  Applies scope rules — external links only, or external links plus internal `target="_blank"` links.
+4.  Adds CSS classes (`wzlw-processed`, `wzlw-external`) for styling.
+5.  Appends the configured screen reader text to any existing `aria-label` attribute.
+6.  For modal and redirect methods, adds `data-wzlw-external`, `data-wzlw-url`, and `data-wzlw-redirect-url` attributes used by the frontend JavaScript.
+7.  For inline methods, appends visual indicator markup (icon, text, or both) inside the link.
 
 The plugin uses WordPress’s native `WP_HTML_Tag_Processor` class for HTML parsing, which avoids regex-based content manipulation for the structural changes.
 

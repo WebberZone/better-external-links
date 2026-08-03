@@ -493,6 +493,50 @@ class Settings {
 	 */
 	public static function settings_advanced() {
 		$settings = array(
+			'link_attributes_header'       => array(
+				'id'   => 'link_attributes_header',
+				'name' => '<h3>' . esc_html__( 'Link Attributes', 'webberzone-link-warnings' ) . '</h3>',
+				'desc' => '',
+				'type' => 'header',
+			),
+			'link_attributes_external'     => array(
+				'id'      => 'link_attributes_external',
+				'name'    => esc_html__( 'External Links', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'Attributes to add to external links. Existing rel values are preserved.', 'webberzone-link-warnings' ),
+				'type'    => 'multicheck',
+				'default' => array(),
+				'options' => self::get_link_attribute_options(),
+			),
+			'link_attributes_affiliate'    => array(
+				'id'      => 'link_attributes_affiliate',
+				'name'    => esc_html__( 'Affiliate Links', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'Attributes to add to links marked with the Affiliate Link Class or inside an Affiliate Link Wrapper Class. Existing rel values are preserved.', 'webberzone-link-warnings' ),
+				'type'    => 'multicheck',
+				'default' => array(),
+				'options' => self::get_link_attribute_options(),
+			),
+			'affiliate_class'              => array(
+				'id'      => 'affiliate_class',
+				'name'    => esc_html__( 'Affiliate Link Class', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'CSS class that marks a specific link as an affiliate link. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas.', 'webberzone-link-warnings' ),
+				'type'    => 'text',
+				'default' => 'wzlw-affiliate',
+				'size'    => 'large',
+			),
+			'affiliate_wrapper_class'      => array(
+				'id'      => 'affiliate_wrapper_class',
+				'name'    => esc_html__( 'Affiliate Link Wrapper Class', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'CSS class that marks every link inside a wrapper element as an affiliate link. Separate multiple classes with commas.', 'webberzone-link-warnings' ),
+				'type'    => 'text',
+				'default' => 'wzlw-affiliate-wrapper',
+				'size'    => 'large',
+			),
+			'exclusions_header'            => array(
+				'id'   => 'exclusions_header',
+				'name' => '<h3>' . esc_html__( 'Exclusions and Classes', 'webberzone-link-warnings' ) . '</h3>',
+				'desc' => '',
+				'type' => 'header',
+			),
 			'excluded_domains'             => array(
 				'id'      => 'excluded_domains',
 				'name'    => esc_html__( 'Excluded Domains', 'webberzone-link-warnings' ),
@@ -535,6 +579,23 @@ class Settings {
 		);
 
 		return apply_filters( self::$prefix . '_settings_advanced', $settings ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound
+	}
+
+	/**
+	 * Get the available automatic link attributes.
+	 *
+	 * @since 1.5.0
+	 * @return array<string, string> Link attribute options.
+	 */
+	private static function get_link_attribute_options() {
+		return array(
+			'nofollow'     => esc_html__( 'Add rel="nofollow"', 'webberzone-link-warnings' ),
+			'sponsored'    => esc_html__( 'Add rel="sponsored"', 'webberzone-link-warnings' ),
+			'ugc'          => esc_html__( 'Add rel="ugc"', 'webberzone-link-warnings' ),
+			'target_blank' => esc_html__( 'Open in a new tab (target="_blank")', 'webberzone-link-warnings' ),
+			'noopener'     => esc_html__( 'Add rel="noopener" for new-tab links', 'webberzone-link-warnings' ),
+			'noreferrer'   => esc_html__( 'Add rel="noreferrer" for new-tab links. This also stops the referrer being sent, which can break referrer-based affiliate attribution.', 'webberzone-link-warnings' ),
+		);
 	}
 
 	/**

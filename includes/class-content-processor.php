@@ -77,6 +77,7 @@ class Content_Processor {
 		$processor            = new \WP_HTML_Tag_Processor( $content );
 		$skip_depth           = 0;
 		$force_external_depth = 0;
+		$affiliate_depth      = 0;
 
 		while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 			if ( $skip_depth > 0 ) {
@@ -103,6 +104,18 @@ class Content_Processor {
 				}
 			}
 
+			if ( $affiliate_depth > 0 ) {
+				$affiliate_depth += $this->get_skip_depth_delta( $processor );
+
+				if ( 0 >= $affiliate_depth ) {
+					$affiliate_depth = 0;
+				}
+			} elseif ( $this->is_affiliate_wrapper_tag( $processor ) ) {
+				if ( ! $this->tag_is_void( $processor->get_tag() ) ) {
+					$affiliate_depth = 1;
+				}
+			}
+
 			if ( 'A' !== $processor->get_tag() ) {
 				continue;
 			}
@@ -112,8 +125,7 @@ class Content_Processor {
 				continue;
 			}
 
-			$href   = $processor->get_attribute( 'href' );
-			$target = $processor->get_attribute( 'target' );
+			$href = $processor->get_attribute( 'href' );
 
 			// Skip if no href.
 			if ( empty( $href ) ) {
@@ -121,8 +133,10 @@ class Content_Processor {
 			}
 
 			// Determine if link should be processed.
-			$is_external    = $force_external_depth > 0 || $this->link_has_force_external_class( $processor ) || $this->is_external_link( $href );
-			$has_target     = '_blank' === $target;
+			$is_affiliate = $affiliate_depth > 0 || $this->link_has_affiliate_class( $processor );
+			$is_external  = $is_affiliate || $force_external_depth > 0 || $this->link_has_force_external_class( $processor ) || $this->is_external_link( $href );
+			$this->apply_link_attributes( $processor, $is_external, $is_affiliate );
+			$has_target     = '_blank' === $processor->get_attribute( 'target' );
 			$should_process = $this->should_process_link( $is_external, $has_target );
 
 			// Inside a skip wrapper, target="_blank" links still need ARIA for accessibility
@@ -242,17 +256,7 @@ class Content_Processor {
 	private function has_skip_wrapper_class( $class_name ) {
 		$wrapper_classes = $this->parse_class_setting( 'no_icon_wrapper_class', 'wzlw-no-icon-wrapper' );
 
-		if ( empty( $wrapper_classes ) ) {
-			return false;
-		}
-
-		$classes = preg_split( '/\s+/', trim( $class_name ) );
-
-		if ( ! is_array( $classes ) ) {
-			return false;
-		}
-
-		return ! empty( array_intersect( $wrapper_classes, $classes ) );
+		return $this->class_attribute_has_any( $class_name, $wrapper_classes );
 	}
 
 	/**
@@ -286,17 +290,37 @@ class Content_Processor {
 	private function has_force_external_wrapper_class( $class_name ) {
 		$wrapper_classes = $this->parse_class_setting( 'force_external_wrapper_class', 'wzlw-force-external-wrapper' );
 
-		if ( empty( $wrapper_classes ) ) {
+		return $this->class_attribute_has_any( $class_name, $wrapper_classes );
+	}
+
+	/**
+	 * Check if the current tag starts an affiliate wrapper.
+	 *
+	 * @since 1.5.0
+	 * @param \WP_HTML_Tag_Processor $processor HTML tag processor instance.
+	 * @return bool True if the tag is an affiliate wrapper.
+	 */
+	private function is_affiliate_wrapper_tag( \WP_HTML_Tag_Processor $processor ) {
+		if ( $processor->is_tag_closer() ) {
 			return false;
 		}
 
-		$classes = preg_split( '/\s+/', trim( $class_name ) );
+		$class_name = $processor->get_attribute( 'class' );
 
-		if ( ! is_array( $classes ) ) {
-			return false;
-		}
+		return is_string( $class_name ) && '' !== $class_name && $this->has_affiliate_wrapper_class( $class_name );
+	}
 
-		return ! empty( array_intersect( $wrapper_classes, $classes ) );
+	/**
+	 * Check if a class attribute contains the affiliate wrapper class.
+	 *
+	 * @since 1.5.0
+	 * @param string $class_name Class attribute value.
+	 * @return bool True if the class is present.
+	 */
+	private function has_affiliate_wrapper_class( $class_name ) {
+		$wrapper_classes = $this->parse_class_setting( 'affiliate_wrapper_class', 'wzlw-affiliate-wrapper' );
+
+		return $this->class_attribute_has_any( $class_name, $wrapper_classes );
 	}
 
 	/**
@@ -313,19 +337,38 @@ class Content_Processor {
 			return false;
 		}
 
-		$class_name = $processor->get_attribute( 'class' );
+		return $this->class_attribute_has_any( $processor->get_attribute( 'class' ), $force_classes );
+	}
 
-		if ( ! is_string( $class_name ) || '' === $class_name ) {
+	/**
+	 * Check if an <a> tag has an affiliate class directly applied.
+	 *
+	 * @since 1.5.0
+	 * @param \WP_HTML_Tag_Processor $processor HTML tag processor instance.
+	 * @return bool True if the class is present.
+	 */
+	private function link_has_affiliate_class( \WP_HTML_Tag_Processor $processor ) {
+		$affiliate_classes = $this->parse_class_setting( 'affiliate_class', 'wzlw-affiliate' );
+
+		return $this->class_attribute_has_any( $processor->get_attribute( 'class' ), $affiliate_classes );
+	}
+
+	/**
+	 * Check whether a class attribute contains any of the supplied classes.
+	 *
+	 * @since 1.5.0
+	 * @param string|null $class_name Class attribute value.
+	 * @param string[]    $classes    Classes to look for.
+	 * @return bool True if a class is present.
+	 */
+	private function class_attribute_has_any( $class_name, array $classes ) {
+		if ( empty( $classes ) || ! is_string( $class_name ) || '' === $class_name ) {
 			return false;
 		}
 
-		$classes = preg_split( '/\s+/', trim( $class_name ) );
+		$class_list = preg_split( '/\s+/', trim( $class_name ) );
 
-		if ( ! is_array( $classes ) ) {
-			return false;
-		}
-
-		return ! empty( array_intersect( $force_classes, $classes ) );
+		return is_array( $class_list ) && ! empty( array_intersect( $classes, $class_list ) );
 	}
 
 	/**
@@ -401,6 +444,82 @@ class Content_Processor {
 		$link_html = str_replace( '</a>', $indicator . '</a>', $link_html );
 
 		return $link_html;
+	}
+
+	/**
+	 * Apply configured attributes to an external or affiliate link.
+	 *
+	 * @since 1.5.0
+	 * @param \WP_HTML_Tag_Processor $processor    HTML tag processor instance.
+	 * @param bool                   $is_external  Whether the link is external.
+	 * @param bool                   $is_affiliate Whether the link is an affiliate link.
+	 * @return void
+	 */
+	private function apply_link_attributes( \WP_HTML_Tag_Processor $processor, $is_external, $is_affiliate ) {
+		$attributes = array();
+
+		if ( $is_external ) {
+			$attributes = array_merge( $attributes, $this->get_link_attributes( 'external' ) );
+		}
+
+		if ( $is_affiliate ) {
+			$attributes = array_merge( $attributes, $this->get_link_attributes( 'affiliate' ) );
+		}
+
+		$attributes = array_unique( $attributes );
+
+		if ( in_array( 'target_blank', $attributes, true ) ) {
+			$processor->set_attribute( 'target', '_blank' );
+		}
+
+		$rel_values = array();
+		foreach ( array( 'nofollow', 'sponsored', 'ugc' ) as $rel ) {
+			if ( in_array( $rel, $attributes, true ) ) {
+				$rel_values[] = $rel;
+			}
+		}
+
+		if ( '_blank' === $processor->get_attribute( 'target' ) ) {
+			foreach ( array( 'noopener', 'noreferrer' ) as $rel ) {
+				if ( in_array( $rel, $attributes, true ) ) {
+					$rel_values[] = $rel;
+				}
+			}
+		}
+
+		if ( ! empty( $rel_values ) ) {
+			$existing_rel = (string) $processor->get_attribute( 'rel' );
+			$existing_rel = preg_split( '/\s+/', trim( $existing_rel ) );
+			if ( ! is_array( $existing_rel ) ) {
+				$existing_rel = array();
+			}
+			$existing_rel = array_filter( $existing_rel );
+			$known_rel    = array_map( 'strtolower', $existing_rel );
+			foreach ( $rel_values as $rel_value ) {
+				if ( ! in_array( strtolower( $rel_value ), $known_rel, true ) ) {
+					$existing_rel[] = $rel_value;
+					$known_rel[]    = strtolower( $rel_value );
+				}
+			}
+			$processor->set_attribute( 'rel', implode( ' ', $existing_rel ) );
+		}
+	}
+
+	/**
+	 * Get the configured attributes for a link type.
+	 *
+	 * @since 1.5.0
+	 * @param string $link_type External or affiliate.
+	 * @return string[] Attribute identifiers.
+	 */
+	private function get_link_attributes( $link_type ) {
+		$attributes = $this->settings[ 'link_attributes_' . $link_type ] ?? array();
+
+		if ( ! is_array( $attributes ) ) {
+			$attributes = wp_parse_list( $attributes );
+		}
+
+		return array_intersect( $attributes, array( 'nofollow', 'sponsored', 'ugc', 'target_blank', 'noopener', 'noreferrer' ) );
 	}
 
 	/**
