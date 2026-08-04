@@ -89,6 +89,35 @@ Every link inside the wrapper is treated as external, regardless of its URL.
 
 The steps are identical to the exclusion classes above. Add `wzlw-force-external` to a single link element, or `wzlw-force-external-wrapper` to the section, column, or block that contains the links you want to force.
 
+## Affiliate classes: Mark links for automatic rel/target attributes
+
+Use these when you want the plugin to add `rel="nofollow"`, `rel="sponsored"`, `rel="ugc"`, or new-tab attributes to specific links automatically, without touching every external link on the site. This is intended for affiliate or sponsored links. You still need to tick the attributes you want under **Settings → Link Warnings → Advanced → Link Attributes** — the classes below only mark *which* links count as affiliate links.
+
+### Mark a single link as an affiliate link
+
+Add the class `wzlw-affiliate` directly to the `<a>` tag.
+
+```html
+<a href="https://merchant.example.com/product" class="wzlw-affiliate">Buy now</a>
+```
+
+### Mark all links in a section as affiliate links
+
+Add the class `wzlw-affiliate-wrapper` to any element that wraps the links.
+
+```html
+<div class="wzlw-affiliate-wrapper">
+  <a href="https://merchant.example.com/a">Product A</a>
+  <a href="https://merchant.example.com/b">Product B</a>
+</div>
+```
+
+An affiliate-marked link is always treated as external for warning purposes too — even if it points to a path on your own domain, such as a cloaked redirect link like `/go/product/`, and even if the domain is on your exclusion list.
+
+### How to add these classes in WordPress
+
+The steps are identical to the exclusion classes above. Add `wzlw-affiliate` to a single link element, or `wzlw-affiliate-wrapper` to the section, column, or block that contains the links you want to mark.
+
 ## Combining both sets of classes
 
 You can use exclusion and force-external classes together. For example, you could force all links in an affiliate section to be treated as external, then exclude one specific link inside that section:
@@ -104,7 +133,7 @@ Product A gets the warning. Product B is excluded from the warning even though i
 
 ## Changing the default class names
 
-The default class names (`wzlw-no-icon`, `wzlw-no-icon-wrapper`, `wzlw-force-external`, `wzlw-force-external-wrapper`) can be changed under **Settings → Link Warnings → Advanced**. If you have changed them, use your custom class names wherever this guide shows the defaults.
+The default class names (`wzlw-no-icon`, `wzlw-no-icon-wrapper`, `wzlw-force-external`, `wzlw-force-external-wrapper`, `wzlw-affiliate`, `wzlw-affiliate-wrapper`) can be changed under **Settings → Link Warnings → Advanced**. If you have changed them, use your custom class names wherever this guide shows the defaults.
 
 Each setting also accepts a comma-separated list of class names. This lets you honor multiple class conventions at once — for example, if you have an existing theme class you want to reuse alongside the plugin default:
 

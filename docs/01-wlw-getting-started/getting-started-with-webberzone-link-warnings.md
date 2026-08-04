@@ -47,7 +47,7 @@ All settings are available at **Settings \> Link Warnings**. The settings page i
 
 - **General** — warning method, link scope, and enabled post types.
 - **Display** — inline indicator options, modal dialog text, and redirect screen text.
-- **Advanced** — excluded domains.
+- **Advanced** — automatic link attributes (`rel`/`target`), affiliate link marking, excluded domains, and CSS class overrides.
 
 See the <a href="https://webberzone.com/support/knowledgebase/webberzone-link-warnings-settings-reference/" data-type="wz_knowledgebase" data-id="9735">Settings Reference</a> for a full description of every option.
 
@@ -58,12 +58,15 @@ WebberZone Link Warnings does not modify your stored content. It filters rendere
 For each `<a>` tag in the output, the plugin:
 
 1. Checks whether the current post type is enabled in settings.
-2. Determines whether the link is external by comparing its host against the site host and the excluded domains list.
-3. Applies scope rules — external links only, or external links plus internal `target="_blank"` links.
-4. Adds CSS classes (`wzlw-processed`, `wzlw-external`) for styling.
-5. Appends the configured screen reader text to any existing `aria-label` attribute.
-6. For modal and redirect methods, adds `data-wzlw-url` and either `data-wzlw-external` (external links) or `data-wzlw-blank` (internal links opening in a new tab, scope `both` only) — plus `data-wzlw-redirect-url` for the redirect methods specifically. These attributes are used by the frontend JavaScript.
-7. For inline methods, appends visual indicator markup (icon, text, or both) inside the link.
+2. Determines whether the link is external by comparing its host against the site host and the excluded domains list, or whether it carries the Affiliate Link Class or sits inside an Affiliate Link Wrapper Class (affiliate links are always treated as external).
+3. Applies the configured Link Attributes (`nofollow`, `sponsored`, `ugc`, `target="_blank"`, `noopener`, `noreferrer`) for external and/or affiliate links, merging into any existing `rel` value without duplicating.
+4. Applies scope rules — external links only, or external links plus internal `target="_blank"` links. A link that just gained `target="_blank"` from step 3 is included here.
+5. Adds CSS classes (`wzlw-processed`, `wzlw-external`) for styling.
+6. Appends the configured screen reader text to any existing `aria-label` attribute.
+7. For modal and redirect methods, adds `data-wzlw-url` and either `data-wzlw-external` (external links) or `data-wzlw-blank` (internal links opening in a new tab, scope `both` only) — plus `data-wzlw-redirect-url` for the redirect methods specifically. These attributes are used by the frontend JavaScript.
+8. For inline methods, appends visual indicator markup (icon, text, or both) inside the link.
+
+Links processed by the frontend JavaScript scan (navigation menus, widgets, footers, and other theme output outside post content) go through the same affiliate detection and attribute application independently, since that markup never passes through `the_content`.
 
 The plugin uses WordPress’s native `WP_HTML_Tag_Processor` class for HTML parsing, which avoids regex-based content manipulation for the structural changes.
 

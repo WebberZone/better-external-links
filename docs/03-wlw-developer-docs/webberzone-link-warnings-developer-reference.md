@@ -300,6 +300,21 @@ echo apply_filters( 'the_content', $my_content );
 add_filter( 'the_content', array( wzlw()->content_processor, 'process_content' ), 999 );
 ```
 
+## Automatic link attributes
+
+Both the PHP content processor and the frontend JavaScript apply `rel`/`target` attributes independently, each covering the links it is responsible for:
+
+- `Content_Processor::apply_link_attributes()` runs inside the same `WP_HTML_Tag_Processor` pass as the rest of `process_content()`, applied to links found in `the_content`/`the_excerpt` output.
+- `modal.js` applies the equivalent logic (`applyLinkAttributes()`) to links found by the frontend JavaScript scan — navigation menus, widgets, footers, and other theme output that never passes through `the_content`. This only runs when a modal or redirect warning method is active, since that is when `modal.js` is enqueued.
+
+Both implementations:
+
+- Read `target_blank` first and set `target="_blank"` on the link before evaluating anything else, so a link with no existing `target` can pick up `noopener`/`noreferrer` in the same pass.
+- Only add `noopener`/`noreferrer` to links that end up with `target="_blank"` — either pre-existing or just set.
+- Merge into any existing `rel` attribute rather than replacing it, and compare case-insensitively to avoid duplicate values.
+
+A link is evaluated for the **affiliate** attribute set if it carries the Affiliate Link Class, or sits inside an Affiliate Link Wrapper Class element — this also forces `is_external`/`is_affiliate` to `true` for warning purposes, identical to the Force External Class behavior. A link can receive both the external and affiliate attribute sets at once (e.g. `nofollow` from external plus `sponsored` from affiliate produces `rel="nofollow sponsored"`).
+
 ## JavaScript objects
 
 The plugin exposes two JavaScript objects on the frontend, depending on the active warning method.
@@ -317,6 +332,10 @@ wzlwSettings.noIconClass               // Array of class names that suppress the
 wzlwSettings.noIconWrapperClass        // Array of class names that suppress indicators inside an element.
 wzlwSettings.forceExternalClass        // Array of class names that force a link to be treated as external.
 wzlwSettings.forceExternalWrapperClass // Array of class names that force all links inside an element to be treated as external.
+wzlwSettings.affiliateClass            // Array of class names that mark a link as an affiliate link.
+wzlwSettings.affiliateWrapperClass     // Array of class names that mark all links inside an element as affiliate links.
+wzlwSettings.linkAttributesExternal    // Array of attribute identifiers to apply to external links (see below).
+wzlwSettings.linkAttributesAffiliate   // Array of attribute identifiers to apply to affiliate links (see below).
 wzlwSettings.visualIndicator           // "icon", "text", "both", or "none".
 wzlwSettings.indicatorText             // Visible text appended to the link when text indicator is enabled.
 wzlwSettings.screenReaderText          // Hidden text added for assistive technology.
@@ -333,7 +352,9 @@ wzlwSettings.nonce                     // Nonce for the wzlw_sign_urls AJAX acti
 
 Entries in `excludedDomains` follow the same format as the admin setting: plain strings (e.g. `"example.com"`) match that exact host; strings prefixed with `*.` (e.g. `"*.example.com"`) match subdomains only.
 
-The class arrays are derived from the comma-separated settings `no_icon_class`, `no_icon_wrapper_class`, `force_external_class`, and `force_external_wrapper_class`, normalized to lowercase arrays by the plugin.
+The class arrays are derived from the comma-separated settings `no_icon_class`, `no_icon_wrapper_class`, `force_external_class`, `force_external_wrapper_class`, `affiliate_class`, and `affiliate_wrapper_class`, normalized to lowercase arrays by the plugin.
+
+`linkAttributesExternal` and `linkAttributesAffiliate` come directly from the `link_attributes_external` and `link_attributes_affiliate` settings and contain zero or more of: `nofollow`, `sponsored`, `ugc`, `target_blank`, `noopener`, `noreferrer`.
 
 ### `wzlwRedirect`
 

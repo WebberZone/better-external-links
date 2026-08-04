@@ -34,12 +34,12 @@ The destination URL is passed as a `url` query parameter, encoded with `rawurlen
 
 ## Open redirect protection
 
-The plugin validates that the destination URL:
+`Redirect_Handler::is_valid_url()` accepts a destination in either of two forms:
 
-- Passes `filter_var()` with `FILTER_VALIDATE_URL`.
-- Points to a host that differs from the site host (i.e. it is genuinely external).
+- **Root-relative paths** with no host and no scheme (e.g. `/go/product/`) — treated as same-site and valid on their own. This covers cloaked affiliate redirect links marked with the Affiliate Link Class or Affiliate Link Wrapper Class, which point at internal paths. A scheme-bearing but host-less value (e.g. `http:evil.com`) is deliberately rejected here, since browsers resolve that against a remote host when the scheme differs from the page's — an authority-less path is only trusted when the scheme is absent too.
+- **Absolute URLs** that pass `filter_var()` with `FILTER_VALIDATE_URL` and point to a host that differs from the site host (i.e. genuinely external).
 
-If validation fails, the user is redirected to the site home page via `wp_safe_redirect()`.
+If neither condition is met, the user is redirected to the site home page via `wp_safe_redirect()`.
 
 ## Template override
 

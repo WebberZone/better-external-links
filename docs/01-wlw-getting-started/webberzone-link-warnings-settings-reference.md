@@ -282,6 +282,72 @@ The number of seconds before the page automatically redirects to the external UR
 
 ## Advanced tab
 
+### Link Attributes
+
+Automatically add `rel` and `target` attributes to matching links at render time. Two independent sets of checkboxes are available — one for **External Links**, one for **Affiliate Links** (see Affiliate Link Class below) — so you can, for example, add `nofollow` to affiliate links only while leaving other external links untouched.
+
+<figure class="wp-block-table">
+<table class="has-fixed-layout">
+<thead>
+<tr>
+<th>Option</th>
+<th>Adds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add rel="nofollow"</td>
+<td><code>rel="nofollow"</code></td>
+</tr>
+<tr>
+<td>Add rel="sponsored"</td>
+<td><code>rel="sponsored"</code></td>
+</tr>
+<tr>
+<td>Add rel="ugc"</td>
+<td><code>rel="ugc"</code></td>
+</tr>
+<tr>
+<td>Open in a new tab</td>
+<td><code>target="_blank"</code></td>
+</tr>
+<tr>
+<td>Add rel="noopener" for new-tab links</td>
+<td><code>rel="noopener"</code> — only on links that open in a new tab (existing <code>target="_blank"</code> or the option above).</td>
+</tr>
+<tr>
+<td>Add rel="noreferrer" for new-tab links</td>
+<td><code>rel="noreferrer"</code> — same condition as <code>noopener</code>. This also stops the referrer being sent, which can break referrer-based affiliate attribution.</td>
+</tr>
+</tbody>
+</table>
+</figure>
+
+A link that already has a `rel` value keeps it — new values are appended, and matching ignores case, so a link with `rel="NoFollow"` is not given a duplicate.
+
+Every option is off by default; nothing is added until you tick it.
+
+**Default:** none selected\
+**Setting keys:** `link_attributes_external`, `link_attributes_affiliate`
+
+### Affiliate Link Class
+
+The CSS class that marks a specific link as an affiliate link. Add this class directly to an `<a>` tag. A link with this class also receives the **Affiliate Links** attribute set above, and is treated as external for warning purposes even if it points to your own domain (the same way the Force External Class does).
+
+Accepts a comma-separated list of class names.
+
+**Default:** `wzlw-affiliate`\
+**Setting key:** `affiliate_class`
+
+### Affiliate Link Wrapper Class
+
+The CSS class that marks every link inside a wrapper element as an affiliate link. Add it to any containing element.
+
+Accepts a comma-separated list of class names.
+
+**Default:** `wzlw-affiliate-wrapper`\
+**Setting key:** `affiliate_wrapper_class`
+
 ### Excluded Domains
 
 A list of domains (one per line) that should be treated as internal. Links pointing to these domains are not processed by the plugin, even if they would otherwise be classified as external.
