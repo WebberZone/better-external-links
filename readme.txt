@@ -246,7 +246,9 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
-= 1.5.0 =
+= 1.5.0 (4 August 2026) =
+
+[Version 1.5.0 Release Post](https://webberzone.com/announcements/webberzone-link-warnings-v1-5/)
 
 **New Features**
 
