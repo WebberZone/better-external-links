@@ -182,7 +182,7 @@ add_filter( 'wzlw_update_option', function ( $value, string $key ) {
 - `$value` *(mixed)* — The value being saved.
 - `$key` *(string)* — The setting key.
 
-### `wzlw_excluded_domains`
+### [`wzlw_excluded_domains`](https://webberzone.dev/webberzone-link-warnings/hooks/wzlw_excluded_domains/)
 
 Filters the list of excluded domains before the external link check runs. Use this to add domains programmatically without modifying the settings.
 
@@ -508,3 +508,7 @@ Use these handles when declaring stylesheet dependencies:
 </tbody>
 </table>
 </figure>
+
+## See also
+
+- [`wzlw_excluded_domains`](https://webberzone.dev/webberzone-link-warnings/hooks/wzlw_excluded_domains/)
