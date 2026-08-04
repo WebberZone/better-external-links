@@ -6,6 +6,7 @@
 /phpcompat-tools/
 /node_modules/
 /build/
+/@webberzone/
 
 # Lock files
 package-lock.json
