@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-03T17:11:30+00:00\n"
+"POT-Creation-Date: 2026-08-04T14:55:58+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: webberzone-link-warnings\n"
@@ -54,54 +54,54 @@ msgstr ""
 
 #: includes/admin/class-activator.php:116
 #: includes/admin/class-settings.php:365
-#: includes/class-content-processor.php:431
-#: includes/class-frontend-handler.php:104
+#: includes/class-content-processor.php:550
+#: includes/class-frontend-handler.php:108
 msgid "(opens in new window)"
 msgstr ""
 
 #: includes/admin/class-activator.php:117
 #: includes/admin/class-settings.php:372
-#: includes/class-content-processor.php:445
-#: includes/class-content-processor.php:457
-#: includes/class-frontend-handler.php:105
+#: includes/class-content-processor.php:564
+#: includes/class-content-processor.php:576
+#: includes/class-frontend-handler.php:109
 msgid "Opens in a new window"
 msgstr ""
 
 #: includes/admin/class-activator.php:118
 #: includes/admin/class-settings.php:387
-#: includes/class-frontend-handler.php:106
+#: includes/class-frontend-handler.php:110
 msgid "You are leaving this site"
 msgstr ""
 
 #: includes/admin/class-activator.php:119
 #: includes/admin/class-settings.php:394
-#: includes/class-frontend-handler.php:107
+#: includes/class-frontend-handler.php:111
 msgid "You are about to visit an external website. Continue?"
 msgstr ""
 
 #: includes/admin/class-activator.php:120
 #: includes/admin/class-settings.php:401
-#: includes/class-frontend-handler.php:108
-#: includes/class-frontend-handler.php:154
+#: includes/class-frontend-handler.php:112
+#: includes/class-frontend-handler.php:158
 msgid "Continue"
 msgstr ""
 
 #: includes/admin/class-activator.php:121
 #: includes/admin/class-settings.php:408
-#: includes/class-frontend-handler.php:109
-#: includes/class-frontend-handler.php:153
+#: includes/class-frontend-handler.php:113
+#: includes/class-frontend-handler.php:157
 msgid "Cancel"
 msgstr ""
 
 #: includes/admin/class-activator.php:125
 #: includes/admin/class-settings.php:448
-#: includes/class-frontend-handler.php:133
+#: includes/class-frontend-handler.php:137
 msgid "Don't show this warning again"
 msgstr ""
 
 #: includes/admin/class-activator.php:126
 #: includes/admin/class-settings.php:463
-#: includes/class-redirect-handler.php:156
+#: includes/class-redirect-handler.php:169
 msgid "You are being redirected to an external site."
 msgstr ""
 
@@ -123,13 +123,13 @@ msgstr ""
 
 #: includes/admin/class-admin.php:98
 #: includes/admin/class-settings.php:182
-#: includes/admin/class-settings.php:621
+#: includes/admin/class-settings.php:682
 msgid "Settings"
 msgstr ""
 
 #: includes/admin/class-admin.php:104
-#: includes/admin/class-settings.php:566
-#: includes/admin/class-settings.php:639
+#: includes/admin/class-settings.php:627
+#: includes/admin/class-settings.php:700
 #: includes/admin/sidebar.php:32
 msgid "Support"
 msgstr ""
@@ -289,7 +289,7 @@ msgid "Link Warnings"
 msgstr ""
 
 #: includes/admin/class-settings.php:229
-#: includes/admin/class-settings.php:582
+#: includes/admin/class-settings.php:643
 msgid "General"
 msgstr ""
 
@@ -530,68 +530,132 @@ msgid "Number of seconds before the automatic redirect takes place. Set to 0 to 
 msgstr ""
 
 #: includes/admin/class-settings.php:498
-msgid "Excluded Domains"
+msgid "Link Attributes"
 msgstr ""
 
-#: includes/admin/class-settings.php:499
-msgid "Enter one domain per line. These domains will be treated as internal (no warning shown). Plain entries (e.g. example.com) match that exact domain only. Use a wildcard entry (e.g. *.example.com) to also exclude subdomains. Add both to exclude everything under a domain."
+#: includes/admin/class-settings.php:504
+msgid "External Links"
 msgstr ""
 
 #: includes/admin/class-settings.php:505
-msgid "Suppress Icon Class"
+msgid "Attributes to add to external links. Existing rel values are preserved."
 msgstr ""
 
-#: includes/admin/class-settings.php:506
-msgid "CSS class that suppresses the visual indicator on a specific link. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas."
+#: includes/admin/class-settings.php:512
+msgid "Affiliate Links"
 msgstr ""
 
 #: includes/admin/class-settings.php:513
-msgid "Suppress Icon Wrapper Class"
+msgid "Attributes to add to links marked with the Affiliate Link Class or inside an Affiliate Link Wrapper Class. Existing rel values are preserved."
 msgstr ""
 
-#: includes/admin/class-settings.php:514
-msgid "CSS class that suppresses visual indicators on all links inside a wrapper element. Add this class to any containing element. Separate multiple classes with commas."
+#: includes/admin/class-settings.php:520
+msgid "Affiliate Link Class"
 msgstr ""
 
 #: includes/admin/class-settings.php:521
-msgid "Force External Class"
+msgid "CSS class that marks a specific link as an affiliate link. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas."
 msgstr ""
 
-#: includes/admin/class-settings.php:522
-msgid "CSS class that forces a specific link to be treated as external. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas."
+#: includes/admin/class-settings.php:528
+msgid "Affiliate Link Wrapper Class"
 msgstr ""
 
 #: includes/admin/class-settings.php:529
-msgid "Force External Wrapper Class"
+msgid "CSS class that marks every link inside a wrapper element as an affiliate link. Separate multiple classes with commas."
 msgstr ""
 
-#: includes/admin/class-settings.php:530
-msgid "CSS class that forces all links inside a wrapper element to be treated as external. Add this class to any containing element. Separate multiple classes with commas."
+#: includes/admin/class-settings.php:536
+msgid "Exclusions and Classes"
 msgstr ""
 
-#: includes/admin/class-settings.php:564
-msgid "For more information:"
+#: includes/admin/class-settings.php:542
+msgid "Excluded Domains"
+msgstr ""
+
+#: includes/admin/class-settings.php:543
+msgid "Enter one domain per line. These domains will be treated as internal (no warning shown). Plain entries (e.g. example.com) match that exact domain only. Use a wildcard entry (e.g. *.example.com) to also exclude subdomains. Add both to exclude everything under a domain."
+msgstr ""
+
+#: includes/admin/class-settings.php:549
+msgid "Suppress Icon Class"
+msgstr ""
+
+#: includes/admin/class-settings.php:550
+msgid "CSS class that suppresses the visual indicator on a specific link. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas."
+msgstr ""
+
+#: includes/admin/class-settings.php:557
+msgid "Suppress Icon Wrapper Class"
+msgstr ""
+
+#: includes/admin/class-settings.php:558
+msgid "CSS class that suppresses visual indicators on all links inside a wrapper element. Add this class to any containing element. Separate multiple classes with commas."
 msgstr ""
 
 #: includes/admin/class-settings.php:565
+msgid "Force External Class"
+msgstr ""
+
+#: includes/admin/class-settings.php:566
+msgid "CSS class that forces a specific link to be treated as external. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas."
+msgstr ""
+
+#: includes/admin/class-settings.php:573
+msgid "Force External Wrapper Class"
+msgstr ""
+
+#: includes/admin/class-settings.php:574
+msgid "CSS class that forces all links inside a wrapper element to be treated as external. Add this class to any containing element. Separate multiple classes with commas."
+msgstr ""
+
+#: includes/admin/class-settings.php:592
+msgid "Add rel=\"nofollow\""
+msgstr ""
+
+#: includes/admin/class-settings.php:593
+msgid "Add rel=\"sponsored\""
+msgstr ""
+
+#: includes/admin/class-settings.php:594
+msgid "Add rel=\"ugc\""
+msgstr ""
+
+#: includes/admin/class-settings.php:595
+msgid "Open in a new tab (target=\"_blank\")"
+msgstr ""
+
+#: includes/admin/class-settings.php:596
+msgid "Add rel=\"noopener\" for new-tab links"
+msgstr ""
+
+#: includes/admin/class-settings.php:597
+msgid "Add rel=\"noreferrer\" for new-tab links. This also stops the referrer being sent, which can break referrer-based affiliate attribution."
+msgstr ""
+
+#: includes/admin/class-settings.php:625
+msgid "For more information:"
+msgstr ""
+
+#: includes/admin/class-settings.php:626
 msgid "Plugin Homepage"
 msgstr ""
 
-#: includes/admin/class-settings.php:584
+#: includes/admin/class-settings.php:645
 msgid "Configure the general behavior of the plugin."
 msgstr ""
 
-#: includes/admin/class-settings.php:585
+#: includes/admin/class-settings.php:646
 msgid "Choose your preferred warning method and which links should be processed."
 msgstr ""
 
 #. translators: 1: WebberZone Link Warnings link, 2: Plugin rating link
-#: includes/admin/class-settings.php:602
+#: includes/admin/class-settings.php:663
 #, php-format
 msgid "Thank you for using <a href=\"%1$s\" target=\"_blank\" rel=\"noopener noreferrer\">WebberZone Link Warnings</a>! Please <a href=\"%2$s\" target=\"_blank\" rel=\"noopener noreferrer\">rate us</a> on WordPress.org"
 msgstr ""
 
-#: includes/admin/class-settings.php:640
+#: includes/admin/class-settings.php:701
 msgid "Donate"
 msgstr ""
 
@@ -631,11 +695,11 @@ msgstr ""
 msgid "Follow us"
 msgstr ""
 
-#: includes/class-frontend-handler.php:139
+#: includes/class-frontend-handler.php:143
 msgid "Close dialog"
 msgstr ""
 
-#: includes/class-frontend-handler.php:145
+#: includes/class-frontend-handler.php:149
 msgid "External URL:"
 msgstr ""
 
