@@ -25,8 +25,11 @@ Settings prefix/key: `wzlw` / `wzlw_settings` (wp_options). Access via `wzlw_get
 ## Build Commands
 
 ```bash
+# Update JS dependencies to latest and reinstall
+ncu -u && pnpm install
+
 # Minify JS/CSS and generate RTL versions
-npm run build:assets
+pnpm run build:assets
 
 # Install production PHP dependencies
 composer build:vendor
@@ -41,10 +44,10 @@ composer phpstan     # Static analysis
 composer phpcompat   # PHP compatibility check
 
 # Create distribution zip
-npm run zip
+pnpm run zip
 ```
 
-Build requires Node.js with `clean-css-cli`, `terser`, `rtlcss`, and `@wordpress/scripts` (installed via `npm install`).
+Build requires Node.js with `clean-css-cli`, `terser`, `rtlcss`, and `@wordpress/scripts` (installed via `pnpm install`).
 
 ## Architecture
 
@@ -71,14 +74,14 @@ Build requires Node.js with `clean-css-cli`, `terser`, `rtlcss`, and `@wordpress
 
 ## Asset Pipeline
 
-The `build-assets.js` script (run via `npm run build:assets`) recursively finds all `.css` and `.js` files, excluding directories `node_modules`, `vendor`, `freemius`, `build`, `.git` and file patterns `*-rtl.css`, `build-assets.js` (note: `.min` files are intentionally NOT excluded so they can be re-minified), then:
+The `build-assets.js` script (run via `pnpm run build:assets`) recursively finds all `.css` and `.js` files, excluding directories `node_modules`, `vendor`, `freemius`, `build`, `.git` and file patterns `*-rtl.css`, `build-assets.js` (note: `.min` files are intentionally NOT excluded so they can be re-minified), then:
 
 1. Minifies CSS → `*.min.css`
 2. Minifies JS → `*.min.js`
 3. Generates RTL CSS → `*-rtl.css` and `*-rtl.min.css`
 4. Formats RTL files with wp-scripts prettier
 
-After adding or significantly editing any `.css` or `.js` file, run `npm run build:assets` to regenerate minified and RTL versions.
+After adding or significantly editing any `.css` or `.js` file, run `pnpm run build:assets` to regenerate minified and RTL versions.
 
 ## Key Conventions
 
