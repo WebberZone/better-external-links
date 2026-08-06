@@ -237,7 +237,7 @@ Your links return to their original state. The plugin doesn't modify your conten
 
 = Where do I report security bugs found in this plugin? =
 
-You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/webberzone-link-warnings)
+Please report security bugs found in the source code of the WebberZone Link Warnings plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/a72edb1c-fea7-41b5-a0a1-fbc9308e3a80). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Screenshots ==
 
