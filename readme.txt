@@ -246,6 +246,10 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 
 == Changelog ==
 
+= 1.5.1 =
+
+* Improvement: Setting defaults are now resolved from a single lightweight list instead of building every settings field, so reading an option early in the page load no longer risks a "translation loading triggered too early" notice.
+
 = 1.5.0 (4 August 2026) =
 
 [Version 1.5.0 Release Post](https://webberzone.com/announcements/link-warnings-v1-5-0/)
