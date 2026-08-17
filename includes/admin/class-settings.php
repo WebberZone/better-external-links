@@ -44,11 +44,16 @@ class Settings {
 	/**
 	 * Prefix which is used for creating the unique filters and actions.
 	 *
+	 * Initialised at declaration rather than only in the constructor: the static
+	 * methods on this class are reachable on the frontend where the Settings object
+	 * is never instantiated, and a null prefix there fires `_settings_defaults`
+	 * instead of `wzlw_settings_defaults`.
+	 *
 	 * @since 1.0.0
 	 *
 	 * @var string Prefix.
 	 */
-	public static $prefix;
+	public static $prefix = 'wzlw';
 
 	/**
 	 * Settings Key.
@@ -218,6 +223,79 @@ class Settings {
 	}
 
 	/**
+	 * Raw default values for every setting, keyed by option ID.
+	 *
+	 * Single source of truth for field defaults. Deliberately contains no
+	 * translation calls so it is safe to invoke before `init` without triggering a
+	 * "translation loading triggered too early" notice. Field definition methods
+	 * below reference this array instead of duplicating literals.
+	 *
+	 * Several display-text fields (`indicator_text`, `screen_reader_text`,
+	 * `modal_title`, `modal_message`, `modal_continue_text`, `modal_cancel_text`,
+	 * `modal_dismiss_text`, `redirect_message`) normally default to a translated
+	 * string computed in the field definition via `__()`. That call cannot run
+	 * here, so the raw value is an empty string instead — every consumer already
+	 * falls back to its own translated default with `??` or an explicit second
+	 * argument, so `Options_API::get_default_option()` returning '' for these is
+	 * never the value a visitor sees.
+	 *
+	 * Values are pre-normalised: checkbox defaults use 1/0 rather than true/false
+	 * so that they match what `settings_defaults()` produces after its
+	 * `(int) (bool)` cast. This array is deliberately unfiltered — the
+	 * `wzlw_settings_defaults` filter is applied by the consumers
+	 * (`settings_defaults()` and `Options_API::get_default_option()`) so that it
+	 * runs exactly once on each path.
+	 *
+	 * @since 1.6.0
+	 *
+	 * @return array Raw default values keyed by option ID.
+	 */
+	public static function get_defaults() {
+		return array(
+			// General.
+			'warning_method'               => 'inline_modal',
+			'scope'                        => 'external',
+			'enabled_post_types'           => 'post,page',
+
+			// Display — Inline Indicators.
+			'visual_indicator'             => 'icon',
+			'icon_style'                   => 'arrow_ne',
+			'custom_icon'                  => '',
+			'icon_color'                   => '#595959',
+			'icon_background'              => '',
+			'indicator_text'               => '',
+			'screen_reader_text'           => '',
+
+			// Display — Modal Dialog.
+			'modal_title'                  => '',
+			'modal_message'                => '',
+			'modal_continue_text'          => '',
+			'modal_cancel_text'            => '',
+			'modal_frequency'              => 'always',
+			'modal_frequency_days'         => 30,
+			'modal_frequency_scope'        => 'domain',
+			'modal_dismiss_text'           => '',
+
+			// Display — Redirect Screen.
+			'redirect_message'             => '',
+			'redirect_countdown'           => 5,
+
+			// Advanced — Link Attributes.
+			'link_attributes_external'     => array(),
+			'link_attributes_affiliate'    => array(),
+			'affiliate_class'              => 'wzlw-affiliate',
+			'affiliate_wrapper_class'      => 'wzlw-affiliate-wrapper',
+
+			// Advanced — Exclusions and Classes.
+			'excluded_domains'             => '',
+			'no_icon_class'                => 'wzlw-no-icon',
+			'no_icon_wrapper_class'        => 'wzlw-no-icon-wrapper',
+			'force_external_class'         => 'wzlw-force-external',
+			'force_external_wrapper_class' => 'wzlw-force-external-wrapper',
+		);
+	}
+
+	/**
 	 * Array containing the settings' sections.
 	 *
 	 * @since 1.0.0
@@ -259,13 +337,14 @@ class Settings {
 	 * @return array General settings.
 	 */
 	public static function settings_general() {
+		$defaults = self::get_defaults();
 		$settings = array(
 			'warning_method'     => array(
 				'id'      => 'warning_method',
 				'name'    => esc_html__( 'Warning Method', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose how to warn users about external links. Modal and redirect warnings trigger on click; inline indicators appear next to the link.', 'webberzone-link-warnings' ),
 				'type'    => 'radio',
-				'default' => 'inline_modal',
+				'default' => $defaults['warning_method'],
 				'options' => array(
 					'inline'          => esc_html__( 'Inline indicators only', 'webberzone-link-warnings' ),
 					'modal'           => esc_html__( 'Modal dialog', 'webberzone-link-warnings' ),
@@ -279,7 +358,7 @@ class Settings {
 				'name'    => esc_html__( 'Inline Indicator Scope', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose which links show inline indicators. Modal and redirect warnings always apply to external links only.', 'webberzone-link-warnings' ),
 				'type'    => 'radio',
-				'default' => 'external',
+				'default' => $defaults['scope'],
 				'options' => array(
 					'external' => esc_html__( 'External links only', 'webberzone-link-warnings' ),
 					'both'     => esc_html__( 'External links and internal links opening in a new tab', 'webberzone-link-warnings' ),
@@ -290,7 +369,7 @@ class Settings {
 				'name'    => esc_html__( 'Enabled Post Types', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Select post types where link warnings should be enabled.', 'webberzone-link-warnings' ),
 				'type'    => 'posttypes',
-				'default' => 'post,page',
+				'default' => $defaults['enabled_post_types'],
 				'options' => 'public',
 			),
 		);
@@ -306,6 +385,7 @@ class Settings {
 	 * @return array Display settings.
 	 */
 	public static function settings_display() {
+		$defaults = self::get_defaults();
 		$settings = array(
 			// Inline Indicators section.
 			'inline_header'         => array(
@@ -319,7 +399,7 @@ class Settings {
 				'name'    => esc_html__( 'Visual Indicator', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose what visual indicator to display.', 'webberzone-link-warnings' ),
 				'type'    => 'radio',
-				'default' => 'icon',
+				'default' => $defaults['visual_indicator'],
 				'options' => array(
 					'icon' => esc_html__( 'Icon (↗)', 'webberzone-link-warnings' ),
 					'text' => esc_html__( 'Text', 'webberzone-link-warnings' ),
@@ -332,7 +412,7 @@ class Settings {
 				'name'    => esc_html__( 'Icon Style', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose which icon to display next to external links.', 'webberzone-link-warnings' ),
 				'type'    => 'select',
-				'default' => 'arrow_ne',
+				'default' => $defaults['icon_style'],
 				'options' => \WebberZone\Link_Warnings\Util\Icon_Helper::get_icon_options(),
 			),
 			'custom_icon'           => array(
@@ -340,7 +420,7 @@ class Settings {
 				'name'    => esc_html__( 'Custom Icon', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Enter your custom icon (only used when "Custom" is selected above). You can use Unicode symbols or emojis.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
-				'default' => '',
+				'default' => $defaults['custom_icon'],
 				'size'    => 'small',
 			),
 			'icon_color'            => array(
@@ -348,14 +428,14 @@ class Settings {
 				'name'    => esc_html__( 'Icon Color', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose the color for the icon.', 'webberzone-link-warnings' ),
 				'type'    => 'color',
-				'default' => '#595959',
+				'default' => $defaults['icon_color'],
 			),
 			'icon_background'       => array(
 				'id'      => 'icon_background',
 				'name'    => esc_html__( 'Icon Background Color', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose the background color for the icon. Leave empty for transparent.', 'webberzone-link-warnings' ),
 				'type'    => 'color',
-				'default' => '',
+				'default' => $defaults['icon_background'],
 			),
 			'indicator_text'        => array(
 				'id'      => 'indicator_text',
@@ -412,7 +492,7 @@ class Settings {
 				'name'    => esc_html__( 'Modal Frequency', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'How often the modal is shown to the same visitor. Choosing anything other than "Always" adds a "Don\'t show again" checkbox to the modal, which is remembered in the visitor\'s browser.', 'webberzone-link-warnings' ),
 				'type'    => 'select',
-				'default' => 'always',
+				'default' => $defaults['modal_frequency'],
 				'options' => array(
 					'always'  => esc_html__( 'Always show the modal', 'webberzone-link-warnings' ),
 					'session' => esc_html__( 'Once per browser session', 'webberzone-link-warnings' ),
@@ -424,7 +504,7 @@ class Settings {
 				'name'    => esc_html__( 'Remember Dismissal For', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Number of days a dismissal is remembered. Only used when the frequency is set to "Once every N days".', 'webberzone-link-warnings' ),
 				'type'    => 'number',
-				'default' => 30,
+				'default' => $defaults['modal_frequency_days'],
 				'min'     => 1,
 				'max'     => 365,
 				'step'    => 1,
@@ -434,7 +514,7 @@ class Settings {
 				'name'    => esc_html__( 'Dismissal Scope', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Whether a dismissal applies only to the destination domain the visitor dismissed, or to every external link on the site.', 'webberzone-link-warnings' ),
 				'type'    => 'select',
-				'default' => 'domain',
+				'default' => $defaults['modal_frequency_scope'],
 				'options' => array(
 					'domain' => esc_html__( 'Per destination domain', 'webberzone-link-warnings' ),
 					'global' => esc_html__( 'All external links', 'webberzone-link-warnings' ),
@@ -467,7 +547,7 @@ class Settings {
 				'name'    => esc_html__( 'Redirect Countdown', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Number of seconds before the automatic redirect takes place. Set to 0 to disable the timed redirect and require the user to click the Continue button on the redirect screen.', 'webberzone-link-warnings' ),
 				'type'    => 'number',
-				'default' => 5,
+				'default' => $defaults['redirect_countdown'],
 				'min'     => 0,
 				'max'     => 60,
 				'step'    => 1,
@@ -492,6 +572,7 @@ class Settings {
 	 * @return array Advanced settings.
 	 */
 	public static function settings_advanced() {
+		$defaults = self::get_defaults();
 		$settings = array(
 			'link_attributes_header'       => array(
 				'id'   => 'link_attributes_header',
@@ -504,7 +585,7 @@ class Settings {
 				'name'    => esc_html__( 'External Links', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Attributes to add to external links. Existing rel values are preserved.', 'webberzone-link-warnings' ),
 				'type'    => 'multicheck',
-				'default' => array(),
+				'default' => $defaults['link_attributes_external'],
 				'options' => self::get_link_attribute_options(),
 			),
 			'link_attributes_affiliate'    => array(
@@ -512,7 +593,7 @@ class Settings {
 				'name'    => esc_html__( 'Affiliate Links', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Attributes to add to links marked with the Affiliate Link Class or inside an Affiliate Link Wrapper Class. Existing rel values are preserved.', 'webberzone-link-warnings' ),
 				'type'    => 'multicheck',
-				'default' => array(),
+				'default' => $defaults['link_attributes_affiliate'],
 				'options' => self::get_link_attribute_options(),
 			),
 			'affiliate_class'              => array(
@@ -520,7 +601,7 @@ class Settings {
 				'name'    => esc_html__( 'Affiliate Link Class', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'CSS class that marks a specific link as an affiliate link. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
-				'default' => 'wzlw-affiliate',
+				'default' => $defaults['affiliate_class'],
 				'size'    => 'large',
 			),
 			'affiliate_wrapper_class'      => array(
@@ -528,7 +609,7 @@ class Settings {
 				'name'    => esc_html__( 'Affiliate Link Wrapper Class', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'CSS class that marks every link inside a wrapper element as an affiliate link. Separate multiple classes with commas.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
-				'default' => 'wzlw-affiliate-wrapper',
+				'default' => $defaults['affiliate_wrapper_class'],
 				'size'    => 'large',
 			),
 			'exclusions_header'            => array(
@@ -542,14 +623,14 @@ class Settings {
 				'name'    => esc_html__( 'Excluded Domains', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Enter one domain per line. These domains will be treated as internal (no warning shown). Plain entries (e.g. example.com) match that exact domain only. Use a wildcard entry (e.g. *.example.com) to also exclude subdomains. Add both to exclude everything under a domain.', 'webberzone-link-warnings' ),
 				'type'    => 'textarea',
-				'default' => '',
+				'default' => $defaults['excluded_domains'],
 			),
 			'no_icon_class'                => array(
 				'id'      => 'no_icon_class',
 				'name'    => esc_html__( 'Suppress Icon Class', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'CSS class that suppresses the visual indicator on a specific link. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
-				'default' => 'wzlw-no-icon',
+				'default' => $defaults['no_icon_class'],
 				'size'    => 'large',
 			),
 			'no_icon_wrapper_class'        => array(
@@ -557,7 +638,7 @@ class Settings {
 				'name'    => esc_html__( 'Suppress Icon Wrapper Class', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'CSS class that suppresses visual indicators on all links inside a wrapper element. Add this class to any containing element. Separate multiple classes with commas.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
-				'default' => 'wzlw-no-icon-wrapper',
+				'default' => $defaults['no_icon_wrapper_class'],
 				'size'    => 'large',
 			),
 			'force_external_class'         => array(
@@ -565,7 +646,7 @@ class Settings {
 				'name'    => esc_html__( 'Force External Class', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'CSS class that forces a specific link to be treated as external. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
-				'default' => 'wzlw-force-external',
+				'default' => $defaults['force_external_class'],
 				'size'    => 'large',
 			),
 			'force_external_wrapper_class' => array(
@@ -573,7 +654,7 @@ class Settings {
 				'name'    => esc_html__( 'Force External Wrapper Class', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'CSS class that forces all links inside a wrapper element to be treated as external. Add this class to any containing element. Separate multiple classes with commas.', 'webberzone-link-warnings' ),
 				'type'    => 'text',
-				'default' => 'wzlw-force-external-wrapper',
+				'default' => $defaults['force_external_wrapper_class'],
 				'size'    => 'large',
 			),
 		);
