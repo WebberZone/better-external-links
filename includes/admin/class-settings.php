@@ -44,10 +44,10 @@ class Settings {
 	/**
 	 * Prefix which is used for creating the unique filters and actions.
 	 *
-	 * Initialised at declaration rather than only in the constructor: the static
-	 * methods on this class are reachable on the frontend where the Settings object
-	 * is never instantiated, and a null prefix there fires `_settings_defaults`
-	 * instead of `wzlw_settings_defaults`.
+	 * Initialised at declaration rather than only in the constructor: the static methods on
+	 * this class are reachable on the frontend where the Settings object is never
+	 * instantiated, and a null prefix there fires `_settings_defaults` instead of
+	 * `wzlw_settings_defaults`.
 	 *
 	 * @since 1.0.0
 	 *
@@ -225,26 +225,14 @@ class Settings {
 	/**
 	 * Raw default values for every setting, keyed by option ID.
 	 *
-	 * Single source of truth for field defaults. Deliberately contains no
-	 * translation calls so it is safe to invoke before `init` without triggering a
-	 * "translation loading triggered too early" notice. Field definition methods
-	 * below reference this array instead of duplicating literals.
-	 *
-	 * Several display-text fields (`indicator_text`, `screen_reader_text`,
-	 * `modal_title`, `modal_message`, `modal_continue_text`, `modal_cancel_text`,
-	 * `modal_dismiss_text`, `redirect_message`) normally default to a translated
-	 * string computed in the field definition via `__()`. That call cannot run
-	 * here, so the raw value is an empty string instead — every consumer already
-	 * falls back to its own translated default with `??` or an explicit second
-	 * argument, so `Options_API::get_default_option()` returning '' for these is
-	 * never the value a visitor sees.
-	 *
-	 * Values are pre-normalised: checkbox defaults use 1/0 rather than true/false
-	 * so that they match what `settings_defaults()` produces after its
-	 * `(int) (bool)` cast. This array is deliberately unfiltered — the
-	 * `wzlw_settings_defaults` filter is applied by the consumers
-	 * (`settings_defaults()` and `Options_API::get_default_option()`) so that it
-	 * runs exactly once on each path.
+	 * Deliberately contains no translation calls, so it is safe to invoke before `init`.
+	 * Several display-text fields (`indicator_text`, `screen_reader_text`, `modal_title`,
+	 * `modal_message`, `modal_continue_text`, `modal_cancel_text`, `modal_dismiss_text`,
+	 * `redirect_message`) normally default to a translated string that can't be computed
+	 * here, so their raw value is '' instead — every consumer already falls back to its own
+	 * translated default, so this is never the value a visitor sees. Values are
+	 * pre-normalised (checkboxes as 1/0) and the array is intentionally unfiltered —
+	 * consumers apply the `wzlw_settings_defaults` filter themselves.
 	 *
 	 * @since 1.6.0
 	 *
