@@ -348,6 +348,9 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 
 == Upgrade Notice ==
 
+= 1.5.1 =
+Fixes settings not saving correctly on multisite (values leaking between sites) and in the settings wizard (repeater rows silently dropped). No action needed.
+
 = 1.5.0 =
 New Link Attributes settings under Advanced add `rel="nofollow"`, `sponsored`, `ugc`, `target="_blank"`, `noopener` and `noreferrer` to external and affiliate links automatically, keeping any `rel` values your links already have. New `wzlw-affiliate` and `wzlw-affiliate-wrapper` classes mark affiliate links; note that affiliate-marked links are also treated as external for warnings, which overrides the excluded domains list for those links. Repeat visitors can also now dismiss the modal — set Modal Frequency to "Once per browser session" or "Once every N days" to add a "Don't show again" checkbox; the default keeps the modal showing every time. Also fixes internal `target="_blank"` links in post content not triggering a warning under the "external links and internal new tab links" scope.
 
