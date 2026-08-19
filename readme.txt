@@ -5,7 +5,7 @@ Donate link: https://ajaydsouza.com/donate/
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -246,10 +246,14 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 
 == Changelog ==
 
-= 1.5.1 =
+= 1.5.1 (20 August 2026) =
 
 * Improvement: Setting defaults are now resolved from a single lightweight list instead of building every settings field, so reading an option early in the page load no longer risks a "translation loading triggered too early" notice.
 * Fix: Fixed settings on a multisite network reading another site's values in the same request after a `switch_to_blog()` call, such as during network activation or deactivation.
+* Fix: Fixed the settings wizard silently dropping repeater field rows on save.
+* Fix: Fixed settings not saving when the referer check was bypassed, and hardened the settings sanitizer's array handling.
+* Updated the Patchstack VDP link to the plugin-specific URL.
+* Tested up to WordPress 7.1.
 
 = 1.5.0 (4 August 2026) =
 
