@@ -2,15 +2,15 @@
 slug: webberzone-link-warnings-settings-reference
 title: "WebberZone Link Warnings Settings Reference"
 products: [link-warnings]
-sections: [01-wlw-getting-started]
-tags: [link-warnings,settings]
+sections: ["01-wlw-getting-started"]
+tags: [link-warnings, settings]
 status: publish
-order: 0
+toc: true
 ---
 
-[kbtoc]
+[toc]
 
-This document describes all available settings for the [WebberZone Link Warnings](https://webberzone.com/plugins/webberzone-link-warnings/) plugin. All plugin settings are available at **Settings \> Link Warnings**. The settings page is organized into three tabs: General, Display, and Advanced.
+This document describes all available settings for the [WebberZone Link Warnings](https://webberzone.com/plugins/webberzone-link-warnings/) plugin. All plugin settings are available at **Settings > Link Warnings**. The settings page is organized into three tabs: General, Display, and Advanced.
 
 Settings are stored in a single WordPress option: `wzlw_settings`.
 
@@ -20,84 +20,34 @@ Settings are stored in a single WordPress option: `wzlw_settings`.
 
 Controls how users are warned about external links.
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Value</th>
-<th>Label</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>inline</code></td>
-<td>Inline indicators only</td>
-<td>Adds visual indicators and screen reader text inside links. No click interception.</td>
-</tr>
-<tr>
-<td><code>modal</code></td>
-<td>Modal dialog</td>
-<td>Intercepts clicks and shows a confirmation dialog. No inline indicators.</td>
-</tr>
-<tr>
-<td><code>redirect</code></td>
-<td>Redirect screen</td>
-<td>Intercepts clicks and navigates to an interstitial page with a countdown. No inline indicators.</td>
-</tr>
-<tr>
-<td><code>inline_modal</code></td>
-<td>Inline indicators + Modal dialog</td>
-<td>Adds inline indicators and intercepts clicks to show a modal.</td>
-</tr>
-<tr>
-<td><code>inline_redirect</code></td>
-<td>Inline indicators + Redirect screen</td>
-<td>Adds inline indicators and intercepts clicks to show a redirect page.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Value | Label | Behavior |
+| --- | --- | --- |
+| `inline` | Inline indicators only | Adds visual indicators and screen reader text inside links. No click interception. |
+| `modal` | Modal dialog | Intercepts clicks and shows a confirmation dialog. No inline indicators. |
+| `redirect` | Redirect screen | Intercepts clicks and navigates to an interstitial page with a countdown. No inline indicators. |
+| `inline_modal` | Inline indicators + Modal dialog | Adds inline indicators and intercepts clicks to show a modal. |
+| `inline_redirect` | Inline indicators + Redirect screen | Adds inline indicators and intercepts clicks to show a redirect page. |
 
-**Default:** `inline_modal`\
+**Default:** `inline_modal`
 **Setting key:** `warning_method`
 
 ### Inline Indicator Scope
 
 Determines which links receive inline indicators. Modal and redirect warnings always apply to external links only.
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Value</th>
-<th>Label</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>external</code></td>
-<td>External links only</td>
-<td>Processes links whose host differs from the site host.</td>
-</tr>
-<tr>
-<td><code>both</code></td>
-<td>External links and internal links opening in a new tab</td>
-<td>Processes external links and any internal link with <code>target="_blank"</code>.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Value | Label | Behavior |
+| --- | --- | --- |
+| `external` | External links only | Processes links whose host differs from the site host. |
+| `both` | External links and internal links opening in a new tab | Processes external links and any internal link with `target="_blank"`. |
 
-**Default:** `external`\
+**Default:** `external`
 **Setting key:** `scope`
 
 ### Enabled Post Types
 
 Select which post types the plugin processes. Only singular views of the selected post types are affected. Archive pages, search results, and other non-singular views are not processed.
 
-**Default:** `post, page`\
+**Default:** `post, page`
 **Setting key:** `enabled_post_types`
 
 ## Display tab
@@ -110,83 +60,56 @@ These settings control the visual indicators appended to processed links. They a
 
 #### Visual Indicator
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Value</th>
-<th>Label</th>
-<th>Output</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>icon</code></td>
-<td>Icon (↗)</td>
-<td>Appends a <code>&lt;span class="wzlw-icon"&gt;</code> whose content is rendered via CSS.</td>
-</tr>
-<tr>
-<td><code>text</code></td>
-<td>Text</td>
-<td>Appends a <code>&lt;span class="wzlw-text"&gt;</code> containing the configured indicator text.</td>
-</tr>
-<tr>
-<td><code>both</code></td>
-<td>Icon + text</td>
-<td>Appends both the icon and text spans.</td>
-</tr>
-<tr>
-<td><code>none</code></td>
-<td>None (screen reader only)</td>
-<td>No visible indicator. Only the screen reader text span is added.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Value | Label | Output |
+| --- | --- | --- |
+| `icon` | Icon (↗) | Appends a `<span class="wzlw-icon">` whose content is rendered via CSS. |
+| `text` | Text | Appends a `<span class="wzlw-text">` containing the configured indicator text. |
+| `both` | Icon + text | Appends both the icon and text spans. |
+| `none` | None (screen reader only) | No visible indicator. Only the screen reader text span is added. |
 
-**Default:** `icon`\
+**Default:** `icon`
 **Setting key:** `visual_indicator`
 
 #### Icon Style
 
 Selects which icon to display next to external links. Options include several built-in arrow and external link symbols, plus a Custom option that uses whatever you enter in the Custom Icon field.
 
-**Default:** `arrow_ne`\
+**Default:** `arrow_ne`
 **Setting key:** `icon_style`
 
 #### Custom Icon
 
 A custom icon character or symbol, used only when Icon Style is set to “Custom”. Accepts Unicode symbols or emoji.
 
-**Default:** empty\
+**Default:** empty
 **Setting key:** `custom_icon`
 
 #### Icon Color
 
 The color for the icon.
 
-**Default:** `#595959`\
+**Default:** `#595959`
 **Setting key:** `icon_color`
 
 #### Icon Background Color
 
 Background color for the icon. Leave empty for transparent.
 
-**Default:** empty\
+**Default:** empty
 **Setting key:** `icon_background`
 
 #### Indicator Text
 
 The visible text displayed next to links when the visual indicator is set to “Text” or “Icon + text”.
 
-**Default:** `(opens in new window)`\
+**Default:** `(opens in new window)`
 **Setting key:** `indicator_text`
 
 #### Screen Reader Text
 
 Hidden text added inside a `<span class="screen-reader-text">` element for assistive technology. This is always added to processed links regardless of the visual indicator setting.
 
-**Default:** `Opens in a new window`\
+**Default:** `Opens in a new window`
 **Setting key:** `screen_reader_text`
 
 ### Modal Dialog
@@ -197,28 +120,28 @@ These settings control the confirmation dialog shown when the warning method inc
 
 The heading displayed at the top of the modal dialog.
 
-**Default:** `You are leaving this site`\
+**Default:** `You are leaving this site`
 **Setting key:** `modal_title`
 
 #### Modal Message
 
 The body text displayed in the modal dialog, below the title.
 
-**Default:** `You are about to visit an external website. Continue?`\
+**Default:** `You are about to visit an external website. Continue?`
 **Setting key:** `modal_message`
 
 #### Continue Button Text
 
 The label for the button that opens the external link.
 
-**Default:** `Continue`\
+**Default:** `Continue`
 **Setting key:** `modal_continue_text`
 
 #### Cancel Button Text
 
 The label for the button that closes the modal and returns the user to the page.
 
-**Default:** `Cancel`\
+**Default:** `Cancel`
 **Setting key:** `modal_cancel_text`
 
 #### Modal Frequency
@@ -233,15 +156,15 @@ Choosing either of the other options adds a **Don't show again** checkbox to the
 
 Dismissals are stored per browser, not per user account, so nothing is written to your database.
 
-**Default:** `always`\
+**Default:** `always`
 **Setting key:** `modal_frequency`
 
 #### Remember Dismissal For
 
 The number of days a dismissal is remembered. Only used when the frequency is set to **Once every N days**.
 
-**Default:** `30`\
-**Range:** 1–365\
+**Default:** `30`
+**Range:** 1–365
 **Setting key:** `modal_frequency_days`
 
 #### Dismissal Scope
@@ -251,14 +174,14 @@ Determines how broadly a dismissal applies.
 - **Per destination domain** — dismissing the warning for `example.com` suppresses the modal for that domain only. Other external links still show the warning.
 - **All external links** — a single dismissal suppresses the modal for every external link on the site.
 
-**Default:** `domain`\
+**Default:** `domain`
 **Setting key:** `modal_frequency_scope`
 
 #### Don't Show Again Label
 
 The label displayed next to the checkbox in the modal.
 
-**Default:** `Don't show this warning again`\
+**Default:** `Don't show this warning again`
 **Setting key:** `modal_dismiss_text`
 
 ### Redirect Screen
@@ -269,15 +192,15 @@ These settings control the interstitial redirect page shown when the warning met
 
 The message displayed on the redirect page above the destination URL.
 
-**Default:** `You are being redirected to an external site.`\
+**Default:** `You are being redirected to an external site.`
 **Setting key:** `redirect_message`
 
 #### Redirect Countdown
 
 The number of seconds before the page automatically redirects to the external URL. Set to `0` to disable the automatic redirect entirely — the user must click the “Continue to site” link manually.
 
-**Default:** `5`\
-**Range:** 0–60\
+**Default:** `5`
+**Range:** 0–60
 **Setting key:** `redirect_countdown`
 
 ## Advanced tab
@@ -286,48 +209,20 @@ The number of seconds before the page automatically redirects to the external UR
 
 Automatically add `rel` and `target` attributes to matching links at render time. Two independent sets of checkboxes are available — one for **External Links**, one for **Affiliate Links** (see Affiliate Link Class below) — so you can, for example, add `nofollow` to affiliate links only while leaving other external links untouched.
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Option</th>
-<th>Adds</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Add rel="nofollow"</td>
-<td><code>rel="nofollow"</code></td>
-</tr>
-<tr>
-<td>Add rel="sponsored"</td>
-<td><code>rel="sponsored"</code></td>
-</tr>
-<tr>
-<td>Add rel="ugc"</td>
-<td><code>rel="ugc"</code></td>
-</tr>
-<tr>
-<td>Open in a new tab</td>
-<td><code>target="_blank"</code></td>
-</tr>
-<tr>
-<td>Add rel="noopener" for new-tab links</td>
-<td><code>rel="noopener"</code> — only on links that open in a new tab (existing <code>target="_blank"</code> or the option above).</td>
-</tr>
-<tr>
-<td>Add rel="noreferrer" for new-tab links</td>
-<td><code>rel="noreferrer"</code> — same condition as <code>noopener</code>. This also stops the referrer being sent, which can break referrer-based affiliate attribution.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Option | Adds |
+| --- | --- |
+| Add rel="nofollow" | `rel="nofollow"` |
+| Add rel="sponsored" | `rel="sponsored"` |
+| Add rel="ugc" | `rel="ugc"` |
+| Open in a new tab | `target="_blank"` |
+| Add rel="noopener" for new-tab links | `rel="noopener"` — only on links that open in a new tab (existing `target="_blank"` or the option above). |
+| Add rel="noreferrer" for new-tab links | `rel="noreferrer"` — same condition as `noopener`. This also stops the referrer being sent, which can break referrer-based affiliate attribution. |
 
 A link that already has a `rel` value keeps it — new values are appended, and matching ignores case, so a link with `rel="NoFollow"` is not given a duplicate.
 
 Every option is off by default; nothing is added until you tick it.
 
-**Default:** none selected\
+**Default:** none selected
 **Setting keys:** `link_attributes_external`, `link_attributes_affiliate`
 
 ### Affiliate Link Class
@@ -336,7 +231,7 @@ The CSS class that marks a specific link as an affiliate link. Add this class di
 
 Accepts a comma-separated list of class names.
 
-**Default:** `wzlw-affiliate`\
+**Default:** `wzlw-affiliate`
 **Setting key:** `affiliate_class`
 
 ### Affiliate Link Wrapper Class
@@ -345,7 +240,7 @@ The CSS class that marks every link inside a wrapper element as an affiliate lin
 
 Accepts a comma-separated list of class names.
 
-**Default:** `wzlw-affiliate-wrapper`\
+**Default:** `wzlw-affiliate-wrapper`
 **Setting key:** `affiliate_wrapper_class`
 
 ### Excluded Domains
@@ -377,7 +272,7 @@ example.com
 *.example.com
 ```
 
-**Default:** empty\
+**Default:** empty
 **Setting key:** `excluded_domains`
 
 ### Suppress Icon Class
@@ -386,7 +281,7 @@ The CSS class name that suppresses the visual indicator (icon and/or text) when 
 
 Accepts a comma-separated list of class names. A link carrying any of the listed classes is treated as a match.
 
-**Default:** `wzlw-no-icon`\
+**Default:** `wzlw-no-icon`
 **Setting key:** `no_icon_class`
 
 ### Suppress Icon Wrapper Class
@@ -395,7 +290,7 @@ The CSS class name that suppresses visual indicators on all links inside a wrapp
 
 Accepts a comma-separated list of class names.
 
-**Default:** `wzlw-no-icon-wrapper`\
+**Default:** `wzlw-no-icon-wrapper`
 **Setting key:** `no_icon_wrapper_class`
 
 ### Force External Class
@@ -404,7 +299,7 @@ The CSS class name that forces a specific link to be treated as external, regard
 
 Accepts a comma-separated list of class names.
 
-**Default:** `wzlw-force-external`\
+**Default:** `wzlw-force-external`
 **Setting key:** `force_external_class`
 
 ### Force External Wrapper Class
@@ -413,7 +308,7 @@ The CSS class name that forces all links inside a wrapper element to be treated 
 
 Accepts a comma-separated list of class names.
 
-**Default:** `wzlw-force-external-wrapper`\
+**Default:** `wzlw-force-external-wrapper`
 **Setting key:** `force_external_wrapper_class`
 
 ## Programmatic access

@@ -2,15 +2,15 @@
 slug: customising-the-redirect-screen
 title: "Customizing the Redirect Screen in WebberZone Link Warnings"
 products: [link-warnings]
-sections: [03-wlw-developer-docs]
-tags: [developer,link-warnings]
+sections: ["03-wlw-developer-docs"]
+tags: [developer, link-warnings]
 status: publish
-order: 0
+toc: true
 ---
 
-[kbtoc]
+[toc]
 
-This article is intended for advanced users and developers who want to modify the behavior of the Redirect screen in <a href="https://webberzone.com/plugins/webberzone-link-warnings/" data-type="page" data-id="9512">WebberZone Link Warnings</a>.
+This article is intended for advanced users and developers who want to modify the behavior of the Redirect screen in [WebberZone Link Warnings](https://webberzone.com/plugins/webberzone-link-warnings/).
 
 When the warning method is set to **Redirect screen** or **Inline indicators + Redirect screen**, clicking an external link opens an interstitial page before the user reaches the external destination. This page shows the destination URL, a message, and a countdown timer.
 
@@ -67,39 +67,12 @@ This uses WordPress’s `locate_template()`, so child themes take priority over 
 
 The following variables are available inside the redirect template:
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Variable</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>$destination</code></td>
-<td><code>string</code></td>
-<td>The full external URL the user is being redirected to.</td>
-</tr>
-<tr>
-<td><code>$message</code></td>
-<td><code>string</code></td>
-<td>The redirect message configured in settings.</td>
-</tr>
-<tr>
-<td><code>$domain</code></td>
-<td><code>string</code></td>
-<td>The host portion of the destination URL (e.g. <code>example.com</code>).</td>
-</tr>
-<tr>
-<td><code>$countdown</code></td>
-<td><code>int</code></td>
-<td>The countdown duration in seconds. <code>0</code> means auto-redirect is disabled.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Variable | Type | Description |
+| --- | --- | --- |
+| `$destination` | `string` | The full external URL the user is being redirected to. |
+| `$message` | `string` | The redirect message configured in settings. |
+| `$domain` | `string` | The host portion of the destination URL (e.g. `example.com`). |
+| `$countdown` | `int` | The countdown duration in seconds. `0` means auto-redirect is disabled. |
 
 ## Writing a custom template
 
@@ -167,29 +140,10 @@ This prevents the redirect from firing while the user is interacting with the pa
 
 The plugin enqueues the following assets on the redirect page only:
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Handle</th>
-<th>File</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>wzlw-redirect</code> (CSS)</td>
-<td><code>includes/assets/css/redirect.css</code></td>
-<td>Page layout, card, buttons, countdown animation.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect</code> (JS)</td>
-<td><code>includes/assets/js/redirect.js</code></td>
-<td>Countdown timer and auto-redirect logic.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Handle | File | Purpose |
+| --- | --- | --- |
+| `wzlw-redirect` (CSS) | `includes/assets/css/redirect.css` | Page layout, card, buttons, countdown animation. |
+| `wzlw-redirect` (JS) | `includes/assets/js/redirect.js` | Countdown timer and auto-redirect logic. |
 
 Both assets respect `SCRIPT_DEBUG` (loading unminified versions when enabled) and `is_rtl()` (loading RTL stylesheets when appropriate).
 
@@ -207,4 +161,4 @@ Keep the JavaScript enqueued to ensure the countdown functions. If you are imple
 
 ## Styling the default template with CSS
 
-If you do not need a full template override, you can restyle the default redirect screen using CSS custom properties. See the <a href="https://webberzone.com/support/knowledgebase/styling-webberzone-link-warnings/" data-type="wz_knowledgebase" data-id="9738">Styling guide</a> for the full list of redirect-related custom properties and class names.
+If you do not need a full template override, you can restyle the default redirect screen using CSS custom properties. See the [Styling guide](https://webberzone.com/support/knowledgebase/styling-webberzone-link-warnings/) for the full list of redirect-related custom properties and class names.

@@ -2,15 +2,15 @@
 slug: styling-webberzone-link-warnings
 title: "Styling WebberZone Link Warnings"
 products: [link-warnings]
-sections: [02-wlw-advanced]
-tags: [link-warnings,styles]
+sections: ["02-wlw-advanced"]
+tags: [link-warnings, styles]
 status: publish
-order: 0
+toc: true
 ---
 
-[kbtoc]
+[toc]
 
-<a href="https://webberzone.com/plugins/webberzone-link-warnings/" data-type="page" data-id="9512">WebberZone Link Warnings</a> uses CSS custom properties (variables) for all colors, spacing, and visual tokens. You can override these in your theme stylesheet without modifying plugin files.
+[WebberZone Link Warnings](https://webberzone.com/plugins/webberzone-link-warnings/) uses CSS custom properties (variables) for all colors, spacing, and visual tokens. You can override these in your theme stylesheet without modifying plugin files.
 
 This guide covers the CSS class reference, custom property reference, and common customization recipes — including replacing the default external link icon.
 
@@ -18,26 +18,10 @@ This guide covers the CSS class reference, custom property reference, and common
 
 The plugin adds the following classes to processed `<a>` tags:
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Class</th>
-<th>Applied when</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>wzlw-processed</code></td>
-<td>Always added to every link the plugin processes.</td>
-</tr>
-<tr>
-<td><code>wzlw-external</code></td>
-<td>Added when the link is classified as external.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Class | Applied when |
+| --- | --- |
+| `wzlw-processed` | Always added to every link the plugin processes. |
+| `wzlw-external` | Added when the link is classified as external. |
 
 These classes are useful for writing targeted CSS rules.
 
@@ -170,7 +154,7 @@ The default icon is the ↗ character, rendered via the `--wzlw-icon-content` CS
 
 ```css
 .wzlw-icon::before {
-    content: '\1F517'; /* Link emoji, or any Unicode code point. */
+    content: '1F517'; /* Link emoji, or any Unicode code point. */
     font-size: 0.875em;
 }
 ```
@@ -182,7 +166,7 @@ If your theme already loads an icon font, you can reference a glyph:
 ```css
 .wzlw-icon::before {
     font-family: 'dashicons';
-    content: '\f504'; /* Dashicons external link glyph. */
+    content: 'f504'; /* Dashicons external link glyph. */
     font-size: 14px;
     vertical-align: middle;
 }
@@ -194,66 +178,20 @@ Replace the `font-family` and `content` values for your icon font.
 
 Key classes for the modal:
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Class</th>
-<th>Element</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>wzlw-modal-overlay</code></td>
-<td>Semi-transparent backdrop.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-container</code></td>
-<td>The dialog box itself.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-close-btn</code></td>
-<td>The close (×) button.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-title</code></td>
-<td>The <code>&lt;h2&gt;</code> heading.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-message</code></td>
-<td>The body text.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-url</code></td>
-<td>The destination URL display.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-actions</code></td>
-<td>The button row.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-dismiss</code></td>
-<td>The "Don't show again" checkbox wrapper (only rendered when Modal Frequency is not "Always").</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-dismiss-input</code></td>
-<td>The checkbox input.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-dismiss-label</code></td>
-<td>The checkbox label.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-cancel</code></td>
-<td>The cancel button.</td>
-</tr>
-<tr>
-<td><code>wzlw-modal-continue</code></td>
-<td>The continue button.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Class | Element |
+| --- | --- |
+| `wzlw-modal-overlay` | Semi-transparent backdrop. |
+| `wzlw-modal-container` | The dialog box itself. |
+| `wzlw-modal-close-btn` | The close (×) button. |
+| `wzlw-modal-title` | The `<h2>` heading. |
+| `wzlw-modal-message` | The body text. |
+| `wzlw-modal-url` | The destination URL display. |
+| `wzlw-modal-actions` | The button row. |
+| `wzlw-modal-dismiss` | The "Don't show again" checkbox wrapper (only rendered when Modal Frequency is not "Always"). |
+| `wzlw-modal-dismiss-input` | The checkbox input. |
+| `wzlw-modal-dismiss-label` | The checkbox label. |
+| `wzlw-modal-cancel` | The cancel button. |
+| `wzlw-modal-continue` | The continue button. |
 
 Example — wider modal with a darker overlay:
 
@@ -271,74 +209,22 @@ Example — wider modal with a darker overlay:
 
 The redirect page uses a centered card layout. Key classes:
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Class</th>
-<th>Element</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>wzlw-redirect-container</code></td>
-<td>Full-page wrapper.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-content</code></td>
-<td>The card.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-icon</code></td>
-<td>The SVG icon area.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-title</code></td>
-<td>The <code>&lt;h1&gt;</code> heading.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-message</code></td>
-<td>The message paragraph.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-url-container</code></td>
-<td>The URL display block.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-url-label</code></td>
-<td>The “Destination:” label.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-url</code></td>
-<td>The destination domain.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-url-full</code></td>
-<td>The full destination URL (monospace).</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-actions</code></td>
-<td>The button row.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-continue</code></td>
-<td>The “Continue to site” button.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-back</code></td>
-<td>The “Go back” button.</td>
-</tr>
-<tr>
-<td><code>wzlw-redirect-countdown</code></td>
-<td>The countdown text.</td>
-</tr>
-<tr>
-<td><code>wzlw-countdown-number</code></td>
-<td>The countdown number.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Class | Element |
+| --- | --- |
+| `wzlw-redirect-container` | Full-page wrapper. |
+| `wzlw-redirect-content` | The card. |
+| `wzlw-redirect-icon` | The SVG icon area. |
+| `wzlw-redirect-title` | The `<h1>` heading. |
+| `wzlw-redirect-message` | The message paragraph. |
+| `wzlw-redirect-url-container` | The URL display block. |
+| `wzlw-redirect-url-label` | The “Destination:” label. |
+| `wzlw-redirect-url` | The destination domain. |
+| `wzlw-redirect-url-full` | The full destination URL (monospace). |
+| `wzlw-redirect-actions` | The button row. |
+| `wzlw-redirect-continue` | The “Continue to site” button. |
+| `wzlw-redirect-back` | The “Go back” button. |
+| `wzlw-redirect-countdown` | The countdown text. |
+| `wzlw-countdown-number` | The countdown number. |
 
 Example — dark redirect page:
 

@@ -2,15 +2,15 @@
 slug: suppress-or-force-link-warnings-using-css-classes
 title: "Suppress or force link warnings using CSS classes"
 products: [link-warnings]
-sections: [01-wlw-getting-started]
+sections: ["01-wlw-getting-started"]
 tags: [link-warnings]
 status: publish
-order: 0
+toc: true
 ---
 
-[kbtoc]
+[toc]
 
-<a href="https://webberzone.com/plugins/webberzone-link-warnings/" data-type="page" data-id="9512">WebberZone Link Warnings</a> gives you two sets of CSS classes you can add directly to links (or their containers) in your content. One set suppresses the warning icon or modal on specific links. The other set treats links as external even when they point to your own domain.
+[WebberZone Link Warnings](https://webberzone.com/plugins/webberzone-link-warnings/) gives you two sets of CSS classes you can add directly to links (or their containers) in your content. One set suppresses the warning icon or modal on specific links. The other set treats links as external even when they point to your own domain.
 
 You do not need to write any code. You add these classes the same way you would add any CSS class in your page builder, block editor, or theme.
 
@@ -145,4 +145,4 @@ Any link carrying **any** of the listed classes will be treated as a match. The 
 
 ## Adding class names to navigation menus
 
-If you’re using **Appearances \> Menus** to manage your navigation menus, you can add the wrapper classes above to force external links and/or hide the icon. You will need to enable viewing this via Screen Options dropdown that you can find in the top right of the page.
+If you’re using **Appearances > Menus** to manage your navigation menus, you can add the wrapper classes above to force external links and/or hide the icon. You will need to enable viewing this via Screen Options dropdown that you can find in the top right of the page.

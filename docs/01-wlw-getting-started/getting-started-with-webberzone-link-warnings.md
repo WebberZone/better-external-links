@@ -2,10 +2,9 @@
 slug: getting-started-with-webberzone-link-warnings
 title: "Getting Started with WebberZone Link Warnings"
 products: [link-warnings]
-sections: [01-wlw-getting-started]
-tags: [installation,link-warnings]
+sections: ["01-wlw-getting-started"]
+tags: [installation, link-warnings]
 status: publish
-order: 0
 ---
 
 WebberZone Link Warnings adds accessible warnings to external links and `target="_blank"` links in your WordPress content. It supports inline visual indicators, modal confirmation dialogs, and redirect interstitial screens — or combinations of these.
@@ -19,7 +18,7 @@ WebberZone Link Warnings adds accessible warnings to external links and `target=
 
 ### From the WordPress dashboard
 
-1. Navigate to **Plugins \> Add New**.
+1. Navigate to **Plugins > Add New**.
 2. Search for “WebberZone Link Warnings”.
 3. Click **Install Now**, then **Activate**.
 
@@ -43,13 +42,13 @@ You can dismiss the wizard at any time and configure settings manually.
 
 ## Manual configuration
 
-All settings are available at **Settings \> Link Warnings**. The settings page is organized into three tabs:
+All settings are available at **Settings > Link Warnings**. The settings page is organized into three tabs:
 
 - **General** — warning method, link scope, and enabled post types.
 - **Display** — inline indicator options, modal dialog text, and redirect screen text.
 - **Advanced** — automatic link attributes (`rel`/`target`), affiliate link marking, excluded domains, and CSS class overrides.
 
-See the <a href="https://webberzone.com/support/knowledgebase/webberzone-link-warnings-settings-reference/" data-type="wz_knowledgebase" data-id="9735">Settings Reference</a> for a full description of every option.
+See the [Settings Reference](https://webberzone.com/support/knowledgebase/webberzone-link-warnings-settings-reference/) for a full description of every option.
 
 ## How content processing works
 
@@ -72,38 +71,13 @@ The plugin uses WordPress’s native `WP_HTML_Tag_Processor` class for HTML pars
 
 ## Warning methods at a glance
 
-<figure class="wp-block-table">
-<table class="has-fixed-layout">
-<thead>
-<tr>
-<th>Method</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Inline</strong></td>
-<td>Adds a visual indicator (icon, text, or both) and screen reader text inside the link. No click interception.</td>
-</tr>
-<tr>
-<td><strong>Modal</strong></td>
-<td>Intercepts clicks on external links and shows a confirmation dialog. The user can continue (opens in a new window) or cancel.</td>
-</tr>
-<tr>
-<td><strong>Redirect</strong></td>
-<td>Intercepts clicks and navigates to an interstitial page with a countdown timer before redirecting to the external URL.</td>
-</tr>
-<tr>
-<td><strong>Inline + Modal</strong></td>
-<td>Combines inline indicators with the modal dialog on click.</td>
-</tr>
-<tr>
-<td><strong>Inline + Redirect</strong></td>
-<td>Combines inline indicators with the redirect interstitial on click.</td>
-</tr>
-</tbody>
-</table>
-</figure>
+| Method | Behavior |
+| --- | --- |
+| **Inline** | Adds a visual indicator (icon, text, or both) and screen reader text inside the link. No click interception. |
+| **Modal** | Intercepts clicks on external links and shows a confirmation dialog. The user can continue (opens in a new window) or cancel. |
+| **Redirect** | Intercepts clicks and navigates to an interstitial page with a countdown timer before redirecting to the external URL. |
+| **Inline + Modal** | Combines inline indicators with the modal dialog on click. |
+| **Inline + Redirect** | Combines inline indicators with the redirect interstitial on click. |
 
 ## What happens on deactivation
 
