@@ -5,6 +5,7 @@ products: [link-warnings]
 sections: ["03-wlw-developer-docs"]
 tags: [developer, link-warnings]
 status: publish
+order: 0
 ---
 
 This article covers the filters, actions, PHP functions, and integration points for [WebberZone Link Warnings](https://webberzone.com/plugins/webberzone-link-warnings/). All hooks use the `wzlw` prefix.

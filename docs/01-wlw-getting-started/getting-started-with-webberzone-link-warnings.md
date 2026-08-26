@@ -5,6 +5,7 @@ products: [link-warnings]
 sections: ["01-wlw-getting-started"]
 tags: [installation, link-warnings]
 status: publish
+order: 0
 ---
 
 WebberZone Link Warnings adds accessible warnings to external links and `target="_blank"` links in your WordPress content. It supports inline visual indicators, modal confirmation dialogs, and redirect interstitial screens — or combinations of these.
