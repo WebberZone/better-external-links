@@ -20,7 +20,7 @@ When the warning method is set to **Redirect screen** or **Inline indicators + R
 2. When a user clicks a processed external link, the frontend JavaScript navigates to `yoursite.com/external-redirect/?url=<encoded-url>`.
 3. On `template_redirect`, the plugin validates the destination URL, confirms it is external, and renders the redirect template.
 4. A separate JavaScript file (`redirect.js`) starts a countdown timer. When the countdown reaches zero, the browser automatically redirects to the external URL.
-5. If the user clicks anywhere on the page (except the “Continue to site” button) or presses any key (except Tab), the automatic countdown is cancelled.
+5. If the user clicks anywhere on the page (except the “Continue to site” button) or presses any key (except Tab), the automatic countdown is canceled.
 
 ## Redirect URL structure
 
@@ -129,7 +129,7 @@ Set **Redirect Countdown** to `0` in the plugin settings. The countdown element 
 
 ### Cancelling the countdown
 
-The countdown is cancelled automatically if the user:
+The countdown is canceled automatically if the user:
 
 - Clicks anywhere on the page (except the “Continue to site” link).
 - Presses any key except Tab.
