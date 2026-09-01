@@ -35,6 +35,7 @@
         "irmmr/rtlcss": "^1.4"
     },
     "config": {
+        "autoloader-suffix": "WebberZoneLinkWarnings",
         "allow-plugins": {
             "phpstan/extension-installer": true,
             "dealerdirect/phpcodesniffer-composer-installer": true
