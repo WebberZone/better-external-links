@@ -1,17 +1,13 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents working with code in this repository.
 
 ## Response Rules
 
 - Return only the changed function or section, not the full file
 - No explanation unless asked
-- No suggestions outside the scope of what was asked
+- No out-of-scope suggestions
 - Skip preamble and trailing summaries
-
-## Release Notes
-
-- In `readme.txt`, prefix any Pro-only changelog bullet with `[Pro]`
 
 ## Links
 
@@ -22,7 +18,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Plugin Overview
 
-**WebberZone Link Warnings** (v1.5.1) adds configurable warnings to external links, affiliate links, or any URL pattern — displaying a modal countdown or inline icon before the visitor leaves the site. Namespace: `WebberZone\Link_Warnings`. Constants: `WZLW_VERSION`, `WZLW_PLUGIN_FILE`, `WZLW_PLUGIN_DIR`, `WZLW_PLUGIN_URL`, `WZLW_PLUGIN_BASENAME`. Requires WordPress 6.6+, PHP 7.4+. No Freemius.
+**WebberZone Link Warnings** (v1.5.1) adds configurable warnings to external/affiliate links or any URL pattern, showing a modal countdown or inline icon before the visitor leaves. Namespace: `WebberZone\Link_Warnings`. Constants: `WZLW_VERSION`, `WZLW_PLUGIN_FILE`, `WZLW_PLUGIN_DIR`, `WZLW_PLUGIN_URL`, `WZLW_PLUGIN_BASENAME`. Requires WordPress 6.6+, PHP 7.4+. No Freemius.
 
 Settings prefix/key: `wzlw` / `wzlw_settings` (wp_options). Access via `wzlw_get_option($key)` / `wzlw_get_settings()`.
 
@@ -78,23 +74,23 @@ Build requires Node.js with `clean-css-cli`, `terser`, `rtlcss`, and `@wordpress
 
 ## Asset Pipeline
 
-The `build-assets.js` script (run via `pnpm run build:assets`) recursively finds all `.css` and `.js` files, excluding directories `node_modules`, `vendor`, `freemius`, `build`, `.git` and file patterns `*-rtl.css`, `build-assets.js` (note: `.min` files are intentionally NOT excluded so they can be re-minified), then:
+`build-assets.js` (run via `pnpm run build:assets`) recursively finds all `.css`/`.js` files, excluding directories `node_modules`, `vendor`, `freemius`, `build`, `.git` and file patterns `*-rtl.css`, `build-assets.js` (`.min` files are intentionally NOT excluded, so they get re-minified), then:
 
 1. Minifies CSS → `*.min.css`
 2. Minifies JS → `*.min.js`
 3. Generates RTL CSS → `*-rtl.css` and `*-rtl.min.css`
 4. Formats RTL files with wp-scripts prettier
 
-After adding or significantly editing any `.css` or `.js` file, run `pnpm run build:assets` to regenerate minified and RTL versions.
+After adding/significantly editing a `.css` or `.js` file, run `pnpm run build:assets` to regenerate minified and RTL versions.
 
 ## Key Conventions
 
-- Link exclusion: Links with the configured no-icon class (default `wzlw-no-icon`, setting `no_icon_class`) have visual indicators suppressed. Links inside elements with the configured wrapper class (default `wzlw-no-icon-wrapper`, setting `no_icon_wrapper_class`) are also suppressed. All four class settings accept comma-separated values (e.g. `wzlw-no-icon, my-no-icon`) — PHP parses them via `Content_Processor::parse_class_setting()` and JS receives them as arrays via `wzlwSettings`.
-- Force external: Links with the configured force-external class (default `wzlw-force-external`, setting `force_external_class`) placed directly on an `<a>` tag are treated as external. Adding the wrapper class (default `wzlw-force-external-wrapper`, setting `force_external_wrapper_class`) to any container forces all descendant links to be treated as external.
-- Both exclusion and force-external use a depth counter (`$skip_depth`, `$force_external_depth`) in `Content_Processor::process_content()` to track nesting across the `WP_HTML_Tag_Processor` token stream.
-- Excluded domains: Plain entries (e.g. `example.com`) match that exact domain only. Wildcard entries (e.g. `*.example.com`) match only subdomains — not the base domain. To exclude both, add both entries. The same logic runs in PHP (`Content_Processor::is_external_link`) and JS (`isExternalHref` in `modal.js`). Excluded domains are passed to JS via `wzlwSettings.excludedDomains`.
-- Content processing uses WordPress's native `WP_HTML_Tag_Processor` (requires WordPress 6.6+, PHP 7.4+).
-- All admin components are loaded conditionally (only on admin pages) within `Admin\Admin`.
+- Link exclusion: links with the no-icon class (default `wzlw-no-icon`, setting `no_icon_class`) suppress visual indicators; links inside the wrapper class (default `wzlw-no-icon-wrapper`, setting `no_icon_wrapper_class`) too. All four class settings accept comma-separated values (e.g. `wzlw-no-icon, my-no-icon`) — PHP parses via `Content_Processor::parse_class_setting()`, JS gets them as arrays via `wzlwSettings`.
+- Force external: an `<a>` tag with the force-external class (default `wzlw-force-external`, setting `force_external_class`) is treated as external; the wrapper class (default `wzlw-force-external-wrapper`, setting `force_external_wrapper_class`) on a container forces all descendant links external.
+- Both exclusion and force-external track nesting across the `WP_HTML_Tag_Processor` token stream via depth counters (`$skip_depth`, `$force_external_depth`) in `Content_Processor::process_content()`.
+- Excluded domains: plain entries (e.g. `example.com`) match only that exact domain; wildcard entries (e.g. `*.example.com`) match only subdomains, not the base — add both to exclude both. Same logic in PHP (`Content_Processor::is_external_link`) and JS (`isExternalHref` in `modal.js`); passed to JS via `wzlwSettings.excludedDomains`.
+- Content processing uses WordPress's native `WP_HTML_Tag_Processor` (WordPress 6.6+, PHP 7.4+).
+- All admin components load conditionally (admin pages only) within `Admin\Admin`.
 - The redirect endpoint uses WordPress rewrite rules managed by `Redirect_Handler`.
 
 ## Settings API Field Widths
@@ -104,11 +100,11 @@ After adding or significantly editing any `.css` or `.js` file, run `pnpm run bu
 
 ## Shared framework files: `@since` convention
 
-The Settings API (`includes/admin/settings/*.php`) and the Admin Banner (`includes/admin/class-admin-banner.php`) are copy-pasted, shared framework files whose canonical source is the `Settings_API` repo. To keep `@since` tags meaningful and stable across syncs, these files follow special rules:
+The Settings API (`includes/admin/settings/*.php`) and Admin Banner (`includes/admin/class-admin-banner.php`) are copy-pasted shared framework files canonically sourced from the `Settings_API` repo. To keep `@since` tags meaningful and stable across syncs, they follow special rules:
 
-- Each file carries **exactly one** `@since` tag, on its **class docblock**, set to the plugin version at which that class was **first introduced into this plugin**. This is per-file (the wizard, metabox and banner classes were generally added later than the core Settings API classes).
+- Each file carries **exactly one** `@since` tag, on its **class docblock**, set to the version that class was **first introduced into this plugin** — per-file (wizard, metabox and banner classes were generally added later than core Settings API classes).
 - **Do not** add `@since` to methods, functions or properties in these files.
-- When syncing/updating these files from another plugin or the canonical `Settings_API` repo, **do not overwrite the class-level `@since`** — it is plugin-specific. Re-apply the values below after any sync.
+- When syncing from another plugin or the canonical `Settings_API` repo, **do not overwrite the class-level `@since`** — plugin-specific; re-apply the values below after any sync.
 
 | File | `@since` |
 |---|---|
