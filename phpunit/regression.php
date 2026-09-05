@@ -206,6 +206,62 @@ namespace {
 		expect( 1 === substr_count( $html, 'wzlw-download-icon' ), 'Download link did not receive its distinct icon.' );
 		expect( 1 === substr_count( $html, 'class="wzlw-icon"' ), 'External link icon markup changed unexpectedly.' );
 	};
+	$tests['external content filters reuse the content processor'] = static function () {
+		settings();
+		$content = '<a href="https://outside.test/source/">external link</a>';
+		$results = array(
+			'widget_block_content'       => apply_filters( 'widget_block_content', $content, array(), null ),
+			'widget_text'                => apply_filters( 'widget_text', $content, array( 'visual' => false, 'filter' => false ), (object) array( 'id_base' => 'text' ) ),
+			'widget_text_content'        => apply_filters( 'widget_text_content', $content, array(), null ),
+			'widget_custom_html_content' => apply_filters( 'widget_custom_html_content', $content, array(), (object) array( 'id_base' => 'custom_html' ) ),
+			'wp_nav_menu'                => apply_filters( 'wp_nav_menu', $content, (object) array() ),
+			'comment_text'               => apply_filters( 'comment_text', $content, null, array() ),
+			'render_block'               => apply_filters( 'render_block', $content, array( 'blockName' => 'core/template-part' ) ),
+		);
+
+		foreach ( $results as $hook => $result ) {
+			expect( 'true' === link_attributes( $result, 'https://outside.test/source/' )['data-wzlw-external'], $hook . ' did not process the link.' );
+		}
+
+		$ordinary_block = apply_filters( 'render_block', $content, array( 'blockName' => 'core/paragraph' ) );
+		expect( $content === $ordinary_block, 'render_block processed a non-template-part block.' );
+	};
+	$tests['external content toggles disable their individual filters'] = static function () {
+		$cases = array(
+			'process_widgets'        => array( 'widget_block_content', array(), null ),
+			'process_nav_menus'      => array( 'wp_nav_menu', (object) array() ),
+			'process_comments'       => array( 'comment_text', null, array() ),
+			'process_template_parts' => array( 'render_block', array( 'blockName' => 'core/template-part' ) ),
+		);
+
+		foreach ( $cases as $setting_id => $arguments ) {
+			settings( array( $setting_id => 0 ) );
+			$content = '<a href="https://outside.test/disabled/">external link</a>';
+			$hook    = array_shift( $arguments );
+			$result  = apply_filters( $hook, $content, ...$arguments );
+			expect( $content === $result, $setting_id . ' did not disable ' . $hook . '.' );
+		}
+	};
+	$tests['external content processing is idempotent'] = static function () {
+		settings();
+		$content = '<a href="https://outside.test/repeated/">external link</a>';
+		$block   = array( 'blockName' => 'core/template-part' );
+		$first   = apply_filters( 'render_block', $content, $block );
+		$second  = apply_filters( 'render_block', $first, $block );
+		expect( 1 === substr_count( $second, 'wzlw-processed' ), 'A processed link was classified more than once.' );
+		expect( 1 === substr_count( $second, 'class="wzlw-icon"' ), 'A processed link received duplicate indicators.' );
+
+		settings( array( 'visual_indicator' => 'none' ) );
+		$first  = apply_filters( 'render_block', $content, $block );
+		$second = apply_filters( 'render_block', $first, $block );
+		expect( 1 === substr_count( $second, 'screen-reader-text' ), 'A screen-reader-only indicator was duplicated.' );
+	};
+	$tests['existing screen-reader markup does not suppress visual indicators'] = static function () {
+		settings();
+		$content = '<a href="https://outside.test/custom/">external link<span class="screen-reader-text">Existing context</span></a>';
+		$html    = process( $content );
+		expect( 1 === substr_count( $html, 'class="wzlw-icon"' ), 'Existing screen-reader markup suppressed the plugin indicator.' );
+	};
 	foreach ( array( 'external', 'both' ) as $scope ) {
 		$tests[ 'filtered exclusions survive PHP processing: ' . $scope ] = static function () use ( $scope ) {
 			settings( array( 'scope' => $scope ) );

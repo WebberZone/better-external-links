@@ -51,6 +51,38 @@ Select which post types the plugin processes. Only singular views of the selecte
 **Default:** `post, page`
 **Setting key:** `enabled_post_types`
 
+### External Content
+
+These toggles control the server-side filters that process links outside post content. They are enabled by default. The sitewide JavaScript scan can still process markup added later by a theme or another plugin.
+
+#### Process Widget Output
+
+Processes links in block, Text, and Custom HTML widget output before it is sent to the browser.
+
+**Default:** enabled
+**Setting key:** `process_widgets`
+
+#### Process Navigation Menus
+
+Processes links in classic navigation menu output before it is sent to the browser. Links in block-theme Navigation blocks are covered by Process Block Theme Template Parts when the block is rendered inside a template part.
+
+**Default:** enabled
+**Setting key:** `process_nav_menus`
+
+#### Process Comments
+
+Processes links in displayed comment text.
+
+**Default:** enabled
+**Setting key:** `process_comments`
+
+#### Process Block Theme Template Parts
+
+Processes the rendered output of block-theme template parts. This covers links in headers, footers, and other template parts without processing every individual block twice.
+
+**Default:** enabled
+**Setting key:** `process_template_parts`
+
 ## Display tab
 
 The Display tab is divided into three sections: Inline Indicators, Modal Dialog, and Redirect Screen.

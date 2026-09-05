@@ -51,22 +51,30 @@ class Content_Processor {
 
 		Hook_Registry::add_filter( 'the_content', array( $this, 'process_content' ), 999 );
 		Hook_Registry::add_filter( 'the_excerpt', array( $this, 'process_content' ), 999 );
+		Hook_Registry::add_filter( 'widget_block_content', array( $this, 'process_widget_content' ), 999, 3 );
+		Hook_Registry::add_filter( 'widget_text', array( $this, 'process_widget_text' ), 999, 3 );
+		Hook_Registry::add_filter( 'widget_text_content', array( $this, 'process_widget_content' ), 999, 3 );
+		Hook_Registry::add_filter( 'widget_custom_html_content', array( $this, 'process_widget_content' ), 999, 3 );
+		Hook_Registry::add_filter( 'wp_nav_menu', array( $this, 'process_nav_menu' ), 999, 2 );
+		Hook_Registry::add_filter( 'comment_text', array( $this, 'process_comment_text' ), 999, 3 );
+		Hook_Registry::add_filter( 'render_block', array( $this, 'process_template_part' ), 999, 2 );
 	}
 
 	/**
 	 * Process content to add accessibility features.
 	 *
 	 * @since 1.0.0
-	 * @param string $content Post content.
+	 * @param string $content                 Content to process.
+	 * @param bool   $external_content       Whether to bypass the enabled post type check.
 	 * @return string Modified content.
 	 */
-	public function process_content( $content ) {
+	public function process_content( $content, $external_content = false ) {
 		if ( empty( $content ) ) {
 			return $content;
 		}
 
 		// Check if current post type is enabled.
-		if ( ! $this->is_post_type_enabled() ) {
+		if ( ! $external_content && ! $this->is_post_type_enabled() ) {
 			return $content;
 		}
 
@@ -129,6 +137,11 @@ class Content_Processor {
 
 			// Skip if no href.
 			if ( empty( $href ) ) {
+				continue;
+			}
+
+			// Avoid reprocessing content that passed through another supported filter.
+			if ( $this->link_is_processed( $processor ) ) {
 				continue;
 			}
 
@@ -224,6 +237,95 @@ class Content_Processor {
 	}
 
 	/**
+	 * Process block, text, and custom HTML widget output.
+	 *
+	 * @since 1.6.0
+	 * @param string $content Widget content.
+	 * @return string Modified content.
+	 */
+	public function process_widget_content( $content ) {
+		return $this->process_external_content( $content, 'process_widgets' );
+	}
+
+	/**
+	 * Process legacy Text widget output without processing it twice for visual or Custom HTML widgets.
+	 *
+	 * @since 1.6.0
+	 * @param string $content  Widget content.
+	 * @param array  $instance Widget instance settings.
+	 * @param object $widget   Widget instance.
+	 * @return string Modified content.
+	 */
+	public function process_widget_text( $content, $instance = array(), $widget = null ) {
+		$is_visual = ! empty( $instance['visual'] ) && ! empty( $instance['filter'] );
+		$is_visual = $is_visual || ( isset( $instance['filter'] ) && 'content' === $instance['filter'] );
+		$is_custom = is_object( $widget ) && isset( $widget->id_base ) && 'custom_html' === $widget->id_base;
+
+		if ( $is_visual || $is_custom ) {
+			return $content;
+		}
+
+		return $this->process_external_content( $content, 'process_widgets' );
+	}
+
+	/**
+	 * Process navigation menu output.
+	 *
+	 * @since 1.6.0
+	 * @param string $nav_menu Navigation menu HTML.
+	 * @return string Modified menu HTML.
+	 */
+	public function process_nav_menu( $nav_menu ) {
+		return $this->process_external_content( $nav_menu, 'process_nav_menus' );
+	}
+
+	/**
+	 * Process comment output.
+	 *
+	 * @since 1.6.0
+	 * @param string $comment_text Comment HTML.
+	 * @return string Modified comment HTML.
+	 */
+	public function process_comment_text( $comment_text ) {
+		return $this->process_external_content( $comment_text, 'process_comments' );
+	}
+
+	/**
+	 * Process block-theme template part output.
+	 *
+	 * Only the complete template-part block is processed. Handling every `render_block`
+	 * invocation would duplicate the post-content filter for ordinary post blocks.
+	 *
+	 * @since 1.6.0
+	 * @param string $block_content Rendered block HTML.
+	 * @param array  $block         Parsed block data.
+	 * @return string Modified block HTML.
+	 */
+	public function process_template_part( $block_content, $block = array() ) {
+		if ( 'core/template-part' !== ( $block['blockName'] ?? '' ) ) {
+			return $block_content;
+		}
+
+		return $this->process_external_content( $block_content, 'process_template_parts' );
+	}
+
+	/**
+	 * Process content from a non-post-content WordPress hook when enabled.
+	 *
+	 * @since 1.6.0
+	 * @param mixed  $content    Content to process.
+	 * @param string $setting_id Setting controlling this content source.
+	 * @return mixed Processed content or the original value.
+	 */
+	private function process_external_content( $content, $setting_id ) {
+		if ( ! is_string( $content ) || '' === $content || ! wzlw_get_option( $setting_id, true ) ) {
+			return $content;
+		}
+
+		return $this->process_content( $content, true );
+	}
+
+	/**
 	 * Add visual indicators to processed links.
 	 *
 	 * @since 1.0.0
@@ -241,6 +343,23 @@ class Content_Processor {
 		);
 
 		return $content;
+	}
+
+	/**
+	 * Check whether a link has already been processed by this plugin.
+	 *
+	 * @since 1.6.0
+	 * @param \WP_HTML_Tag_Processor $processor HTML tag processor instance.
+	 * @return bool True when the link has already been processed.
+	 */
+	private function link_is_processed( \WP_HTML_Tag_Processor $processor ) {
+		$class = $processor->get_attribute( 'class' );
+
+		if ( ! is_string( $class ) || '' === $class ) {
+			return false;
+		}
+
+		return in_array( 'wzlw-processed', preg_split( '/\s+/', trim( $class ) ), true );
 	}
 
 	/**
@@ -436,6 +555,15 @@ class Content_Processor {
 	 */
 	private function add_indicator_to_link( $matches ) {
 		$link_html = $matches[0];
+
+		// The same HTML can pass through more than one supported content filter.
+		$has_indicator = preg_match( '/\bclass=["\'][^"\']*\b(?:wzlw-icon|wzlw-text)\b[^"\']*["\']/i', $link_html );
+		if ( ! $has_indicator && 'none' === ( $this->settings['visual_indicator'] ?? 'icon' ) ) {
+			$has_indicator = preg_match( '/<span\b[^>]*class=["\'][^"\']*\bscreen-reader-text\b[^"\']*["\'][^>]*>/i', $link_html );
+		}
+		if ( $has_indicator ) {
+			return $link_html;
+		}
 
 		// Check if link has the no-icon class — suppress visual indicator but
 		// still add screen reader text for target="_blank" links.

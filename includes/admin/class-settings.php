@@ -245,6 +245,10 @@ class Settings {
 			'warning_method'               => 'inline_modal',
 			'scope'                        => 'external',
 			'enabled_post_types'           => 'post,page',
+			'process_widgets'              => 1,
+			'process_nav_menus'            => 1,
+			'process_comments'             => 1,
+			'process_template_parts'       => 1,
 
 			// Display — Inline Indicators.
 			'visual_indicator'             => 'icon',
@@ -331,7 +335,7 @@ class Settings {
 	public static function settings_general() {
 		$defaults = self::get_defaults();
 		$settings = array(
-			'warning_method'     => array(
+			'warning_method'          => array(
 				'id'      => 'warning_method',
 				'name'    => esc_html__( 'Warning Method', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose how to warn users about external links. Modal and redirect warnings trigger on click; inline indicators appear next to the link.', 'webberzone-link-warnings' ),
@@ -345,7 +349,7 @@ class Settings {
 					'inline_redirect' => esc_html__( 'Inline indicators + Redirect screen', 'webberzone-link-warnings' ),
 				),
 			),
-			'scope'              => array(
+			'scope'                   => array(
 				'id'      => 'scope',
 				'name'    => esc_html__( 'Inline Indicator Scope', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Choose which links show inline indicators. Modal and redirect warnings always apply to external links only.', 'webberzone-link-warnings' ),
@@ -356,13 +360,47 @@ class Settings {
 					'both'     => esc_html__( 'External links and internal links opening in a new tab', 'webberzone-link-warnings' ),
 				),
 			),
-			'enabled_post_types' => array(
+			'enabled_post_types'      => array(
 				'id'      => 'enabled_post_types',
 				'name'    => esc_html__( 'Enabled Post Types', 'webberzone-link-warnings' ),
 				'desc'    => esc_html__( 'Select post types where link warnings should be enabled.', 'webberzone-link-warnings' ),
 				'type'    => 'posttypes',
 				'default' => $defaults['enabled_post_types'],
 				'options' => 'public',
+			),
+			'external_content_header' => array(
+				'id'   => 'external_content_header',
+				'name' => '<h3>' . esc_html__( 'External Content', 'webberzone-link-warnings' ) . '</h3>',
+				'desc' => '',
+				'type' => 'header',
+			),
+			'process_widgets'         => array(
+				'id'      => 'process_widgets',
+				'name'    => esc_html__( 'Process Widget Output', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'Process links in block, text, and custom HTML widgets on the server.', 'webberzone-link-warnings' ),
+				'type'    => 'checkbox',
+				'default' => $defaults['process_widgets'],
+			),
+			'process_nav_menus'       => array(
+				'id'      => 'process_nav_menus',
+				'name'    => esc_html__( 'Process Navigation Menus', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'Process links in classic navigation menu output on the server.', 'webberzone-link-warnings' ),
+				'type'    => 'checkbox',
+				'default' => $defaults['process_nav_menus'],
+			),
+			'process_comments'        => array(
+				'id'      => 'process_comments',
+				'name'    => esc_html__( 'Process Comments', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'Process links in comment text on the server.', 'webberzone-link-warnings' ),
+				'type'    => 'checkbox',
+				'default' => $defaults['process_comments'],
+			),
+			'process_template_parts'  => array(
+				'id'      => 'process_template_parts',
+				'name'    => esc_html__( 'Process Block Theme Template Parts', 'webberzone-link-warnings' ),
+				'desc'    => esc_html__( 'Process links in rendered block-theme template parts on the server.', 'webberzone-link-warnings' ),
+				'type'    => 'checkbox',
+				'default' => $defaults['process_template_parts'],
 			),
 		);
 

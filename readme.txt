@@ -15,7 +15,7 @@ Add accessible warnings for external links and `target="_blank"` links in WordPr
 
 WebberZone Link Warnings helps you warn users when links open in a new window or take them to external websites. It adds accessible indicators, confirmation dialogs, or redirect screens — helping you align with accessibility best practices without rewriting your content.
 
-WebberZone Link Warnings uses a two-layer approach to process links across your entire site. For post content, it uses WordPress's native `WP_HTML_Tag_Processor` class to efficiently parse and modify links at render time. For everything else — navigation menus, footers, sidebars, widgets, and theme output — a lightweight JavaScript scan runs after the page loads and applies the same rules. It adds appropriate ARIA attributes, visual indicators, and optional JavaScript-based warnings based on your configuration. Your stored content remains untouched — the plugin only alters rendered output and does not interfere with REST API responses or admin editing screens.
+WebberZone Link Warnings uses a two-layer approach to process links across your entire site. For post content, it uses WordPress's native `WP_HTML_Tag_Processor` class to efficiently parse and modify links at render time. Server-side filters also process widget output, navigation menus, comment text, and block-theme template parts when their General settings are enabled. A lightweight JavaScript scan handles remaining theme output after the page loads and applies the same rules. Your stored content remains untouched — the plugin only alters rendered output and does not interfere with REST API responses or admin editing screens.
 
 ### Why warn users about external links?
 
@@ -36,7 +36,7 @@ WebberZone Link Warnings uses a two-layer approach to process links across your 
 * __Automatic Link Attributes__: Add `nofollow`, `sponsored`, `ugc`, `noopener`, `noreferrer` and `target="_blank"` to external links, affiliate links, or both — no post edits needed
 * __Affiliate Link Marking__: Flag a link or container with a class and give affiliate links their own attributes
 * __Domain Exclusions__: Allow trusted domains to treat them as internal links
-* __Sitewide Coverage__: Links in navigation menus, footers, sidebars, widgets, and theme output are processed alongside post content
+* __Sitewide Coverage__: Server-side filters process widget output, navigation menus, comment text, and block-theme template parts, while the JavaScript scan covers remaining theme output
 * __Post Type Control__: PHP-side processing is scoped to configured post types; JS scanning covers the full page regardless
 * __Built to support accessibility best practices for external link behaviour in WordPress__: Adds screen reader text, ARIA attributes, and keyboard-friendly modal confirmations
 * __Setup Wizard__: Get started quickly with a guided setup wizard on first activation
@@ -251,6 +251,7 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 * New: Download warnings now cover links whose URL path ends in a configured file extension, including files hosted on the current site. The default extensions are `pdf, zip, doc, docx, xls, xlsx, exe, dmg`.
 * New: Added the **Download Links** section under Advanced with the **Downloadable File Extensions** setting, plus separate **Download Modal Title** and **Download Modal Message** settings under Modal Dialog.
 * New: Download links use a distinct download indicator icon when icons are enabled. Query strings and URL fragments are ignored when matching file extensions.
+* New: Server-side filters process widget output, navigation menus, comment text, and block-theme template parts. Each source can be enabled or disabled separately under General > External Content.
 * Fix: External links written without a scheme, such as `//example.com/page`, were treated as internal and received no warning.
 * Fix: Redirect screen destinations containing `&`, `#` or `+` failed the signature check and sent visitors to the home page.
 * Fix: Under the redirect methods, force-external links and internal `target="_blank"` links pointing at your own site also sent visitors to the home page instead of the warning screen.
@@ -363,7 +364,7 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 == Upgrade Notice ==
 
 = 1.6.0 =
-Adds warnings for configured downloadable file types and fixes external links written as `//example.com/page` getting no warning, and redirect screens sending visitors to the home page instead of the destination. Also fixes wrappers containing an `<iframe>` or `<script>` suppressing every link after them. No action needed.
+Adds warnings for configured downloadable file types and server-side processing for widget output, navigation menus, comments, and block-theme template parts. It also fixes external links written as `//example.com/page` getting no warning, redirect screens sending visitors to the home page instead of the destination, and wrappers containing an `<iframe>` or `<script>` suppressing every link after them. No action needed.
 
 = 1.5.1 =
 Fixes settings not saving correctly on multisite (values leaking between sites) and in the settings wizard (repeater rows silently dropped). No action needed.
