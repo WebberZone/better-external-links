@@ -87,7 +87,7 @@ class Content_Processor {
 					$skip_depth = 0;
 				}
 			} elseif ( $this->is_skip_wrapper_tag( $processor ) ) {
-				if ( ! $this->tag_is_void( $processor->get_tag() ) ) {
+				if ( 1 === $this->get_skip_depth_delta( $processor ) ) {
 					$skip_depth = 1;
 				}
 			}
@@ -99,7 +99,7 @@ class Content_Processor {
 					$force_external_depth = 0;
 				}
 			} elseif ( $this->is_force_external_wrapper_tag( $processor ) ) {
-				if ( ! $this->tag_is_void( $processor->get_tag() ) ) {
+				if ( 1 === $this->get_skip_depth_delta( $processor ) ) {
 					$force_external_depth = 1;
 				}
 			}
@@ -111,7 +111,7 @@ class Content_Processor {
 					$affiliate_depth = 0;
 				}
 			} elseif ( $this->is_affiliate_wrapper_tag( $processor ) ) {
-				if ( ! $this->tag_is_void( $processor->get_tag() ) ) {
+				if ( 1 === $this->get_skip_depth_delta( $processor ) ) {
 					$affiliate_depth = 1;
 				}
 			}
@@ -134,7 +134,18 @@ class Content_Processor {
 
 			// Determine if link should be processed.
 			$is_affiliate = $affiliate_depth > 0 || $this->link_has_affiliate_class( $processor );
-			$is_external  = $is_affiliate || $force_external_depth > 0 || $this->link_has_force_external_class( $processor ) || $this->is_external_link( $href );
+			$is_forced    = $is_affiliate || $force_external_depth > 0 || $this->link_has_force_external_class( $processor );
+			$is_excluded  = ! $is_forced && $this->is_excluded_domain( $href );
+			$is_external  = $is_forced || ( ! $is_excluded && $this->is_external_link( $href ) );
+
+			if ( $is_excluded ) {
+				$processor->set_attribute( 'data-wzlw-excluded', 'true' );
+				foreach ( array( 'data-wzlw-url', 'data-wzlw-external', 'data-wzlw-blank', 'data-wzlw-redirect-url' ) as $attribute ) {
+					$processor->remove_attribute( $attribute );
+				}
+			} else {
+				$processor->remove_attribute( 'data-wzlw-excluded' );
+			}
 			$this->apply_link_attributes( $processor, $is_external, $is_affiliate );
 			$has_target     = '_blank' === $processor->get_attribute( 'target' );
 			$should_process = $this->should_process_link( $is_external, $has_target );
@@ -152,7 +163,7 @@ class Content_Processor {
 			}
 
 			// Excluded-domain links with target=_blank (scope=both): ARIA only, no icon, no modal.
-			if ( ! $is_external && $has_target && $this->is_excluded_domain( $href ) ) {
+			if ( $is_excluded && $has_target ) {
 				$aria_label = $this->get_aria_label( $processor->get_attribute( 'aria-label' ) );
 				if ( $aria_label ) {
 					$processor->set_attribute( 'aria-label', $aria_label );
@@ -383,7 +394,7 @@ class Content_Processor {
 			return -1;
 		}
 
-		if ( $this->tag_is_void( $processor->get_tag() ) ) {
+		if ( $this->tag_is_void( $processor->get_tag() ) || in_array( $processor->get_tag(), array( 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'IFRAME', 'NOEMBED', 'NOFRAMES', 'XMP' ), true ) ) {
 			return 0;
 		}
 
@@ -428,8 +439,8 @@ class Content_Processor {
 			$has_no_icon_class = is_array( $link_classes ) && ! empty( array_intersect( $no_icon_classes, $link_classes ) );
 		}
 		if ( $has_no_icon_class ) {
-			if ( strpos( $link_html, 'target="_blank"' ) !== false ) {
-				$link_html = str_replace( '</a>', $this->get_screen_reader_text() . '</a>', $link_html );
+			if ( preg_match( '/\btarget\s*=\s*(?:"_blank"|\'_blank\'|_blank)/i', $link_html ) ) {
+				$link_html = str_ireplace( '</a>', $this->get_screen_reader_text() . '</a>', $link_html );
 			}
 			return $link_html;
 		}
@@ -441,7 +452,7 @@ class Content_Processor {
 		}
 
 		// Insert indicator before closing </a> tag.
-		$link_html = str_replace( '</a>', $indicator . '</a>', $link_html );
+		$link_html = str_ireplace( '</a>', $indicator . '</a>', $link_html );
 
 		return $link_html;
 	}
@@ -591,7 +602,7 @@ class Content_Processor {
 	 */
 	private function is_external_link( $url ) {
 		// Handle relative URLs.
-		if ( 0 === strpos( $url, '/' ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, '?' ) ) {
+		if ( ( 0 === strpos( $url, '/' ) && 0 !== strpos( $url, '//' ) ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, '?' ) ) {
 			return false;
 		}
 
@@ -608,6 +619,32 @@ class Content_Processor {
 		if ( $link_host === $this->site_host ) {
 			return false;
 		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a URL's host matches the excluded domains list.
+	 *
+	 * Unlike is_external_link(), this does not check the site host — it only
+	 * tests whether the domain is explicitly excluded. Used to detect
+	 * excluded-domain target=_blank links under scope=both.
+	 *
+	 * @since 1.5.0
+	 * @param string $url URL to check.
+	 * @return bool True if the host matches an excluded domain entry.
+	 */
+	private function is_excluded_domain( string $url ): bool {
+		if ( ( 0 === strpos( $url, '/' ) && 0 !== strpos( $url, '//' ) ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, '?' ) ) {
+			return false;
+		}
+
+		$parsed_url = wp_parse_url( $url );
+		if ( ! isset( $parsed_url['host'] ) ) {
+			return false;
+		}
+
+		$link_host = strtolower( rtrim( $parsed_url['host'], '.' ) );
 
 		// Check excluded domains.
 		$excluded_domains = $this->settings['excluded_domains'] ?? '';
@@ -644,61 +681,6 @@ class Content_Processor {
 		foreach ( $excluded_domains as $domain ) {
 			if ( 0 === strpos( $domain, '*.' ) ) {
 				// *.example.com — matches subdomains only, not the base domain itself.
-				$base = substr( $domain, 2 );
-				if ( $base && substr( $link_host, -( strlen( $base ) + 1 ) ) === '.' . $base ) {
-					return false;
-				}
-			} elseif ( $link_host === $domain ) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Check if a URL's host matches the excluded domains list.
-	 *
-	 * Unlike is_external_link(), this does not check the site host — it only
-	 * tests whether the domain is explicitly excluded. Used to detect
-	 * excluded-domain target=_blank links under scope=both.
-	 *
-	 * @since 1.5.0
-	 * @param string $url URL to check.
-	 * @return bool True if the host matches an excluded domain entry.
-	 */
-	private function is_excluded_domain( string $url ): bool {
-		if ( 0 === strpos( $url, '/' ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, '?' ) ) {
-			return false;
-		}
-
-		$parsed_url = wp_parse_url( $url );
-		if ( ! isset( $parsed_url['host'] ) ) {
-			return false;
-		}
-
-		$link_host = strtolower( rtrim( $parsed_url['host'], '.' ) );
-
-		$excluded_domains = $this->settings['excluded_domains'] ?? '';
-		if ( is_string( $excluded_domains ) ) {
-			$excluded_domains = array_filter( array_map( 'trim', explode( "\n", $excluded_domains ) ) );
-		}
-
-		$excluded_domains = array_filter(
-			array_map(
-				function ( $domain ) {
-					$parsed = wp_parse_url( $domain );
-					if ( ! empty( $parsed['host'] ) ) {
-						return strtolower( $parsed['host'] );
-					}
-					return strtolower( strtok( rtrim( $domain, '/' ), '/' ) );
-				},
-				$excluded_domains
-			)
-		);
-
-		foreach ( $excluded_domains as $domain ) {
-			if ( 0 === strpos( $domain, '*.' ) ) {
 				$base = substr( $domain, 2 );
 				if ( $base && substr( $link_host, -( strlen( $base ) + 1 ) ) === '.' . $base ) {
 					return true;

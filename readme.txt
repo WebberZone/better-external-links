@@ -5,7 +5,7 @@ Donate link: https://ajaydsouza.com/donate/
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -246,6 +246,17 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 
 == Changelog ==
 
+= 1.5.2 =
+
+* Fix: External links written without a scheme, such as `//example.com/page`, were treated as internal and received no warning.
+* Fix: Redirect screen destinations containing `&`, `#` or `+` failed the signature check and sent visitors to the home page.
+* Fix: Under the redirect methods, force-external links and internal `target="_blank"` links pointing at your own site also sent visitors to the home page instead of the warning screen.
+* Fix: A no-icon, force-external or affiliate wrapper containing an `<iframe>`, `<script>`, `<textarea>` or similar element suppressed every link after it on the page.
+* Fix: Links written with an uppercase `</A>` closing tag received no icon or screen reader text.
+* Fix: Excluded domains are now marked in the markup, so the JavaScript scan honours the same decision as PHP for links outside post content.
+* Improvement: Hardened the modal and redirect scripts against malformed link markup — a destination or redirect URL that does not match the link is now ignored.
+* Improvement: Activation no longer writes a duplicate copy of the default settings.
+
 = 1.5.1 =
 
 * Improvement: Setting defaults are now resolved from a single lightweight list instead of building every settings field, so reading an option early in the page load no longer risks a "translation loading triggered too early" notice.
@@ -347,6 +358,9 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.5.2 =
+Fixes external links written as `//example.com/page` getting no warning, and redirect screens sending visitors to the home page instead of the destination. Also fixes wrappers containing an `<iframe>` or `<script>` suppressing every link after them. No action needed.
 
 = 1.5.1 =
 Fixes settings not saving correctly on multisite (values leaking between sites) and in the settings wizard (repeater rows silently dropped). No action needed.

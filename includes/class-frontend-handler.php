@@ -41,7 +41,7 @@ class Frontend_Handler {
 	 */
 	public function enqueue_assets() {
 		$settings = wzlw_get_settings();
-		$method   = isset( $settings['warning_method'] ) ? $settings['warning_method'] : 'inline';
+		$method   = isset( $settings['warning_method'] ) ? $settings['warning_method'] : 'inline_modal';
 
 		$rtl_suffix = is_rtl() ? '-rtl' : '';
 		$min_suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
@@ -114,6 +114,7 @@ class Frontend_Handler {
 				'modalFrequency'            => $settings['modal_frequency'] ?? 'always',
 				'modalFrequencyDays'        => max( 1, (int) ( $settings['modal_frequency_days'] ?? 30 ) ),
 				'modalFrequencyScope'       => $settings['modal_frequency_scope'] ?? 'domain',
+				'redirectBaseUrl'           => home_url( 'external-redirect/' ),
 				'ajaxUrl'                   => admin_url( 'admin-ajax.php' ),
 				'nonce'                     => wp_create_nonce( 'wzlw_sign_urls' ),
 			)
@@ -127,7 +128,7 @@ class Frontend_Handler {
 	 */
 	public function render_modal() {
 		$settings = wzlw_get_settings();
-		$method   = isset( $settings['warning_method'] ) ? $settings['warning_method'] : 'inline';
+		$method   = isset( $settings['warning_method'] ) ? $settings['warning_method'] : 'inline_modal';
 
 		if ( ! in_array( $method, array( 'modal', 'inline_modal' ), true ) ) {
 			return;

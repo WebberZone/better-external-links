@@ -59,6 +59,7 @@ const config = {
 		'freemius',
 		'build',
 		'.git',
+		'phpunit',
 		'includes/blocks',
 		'includes/frontend/blocks',
 		'includes/pro/blocks',

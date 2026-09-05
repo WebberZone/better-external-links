@@ -93,7 +93,14 @@
 			const hasNoIconClass = noIconClasses.length && noIconClasses.some(function (c) { return link.classList.contains(c); });
 
 			const isAffiliate = !!(inAffiliateWrapper || hasAffiliateClass);
-			const isExternal = !!(isAffiliate || inForceExtWrapper || hasForceExtClass || isExternalHref(href));
+			const isForced = !!(isAffiliate || inForceExtWrapper || hasForceExtClass);
+			if (link.hasAttribute('data-wzlw-excluded')) {
+				if (!isForced) {
+					return;
+				}
+				link.removeAttribute('data-wzlw-excluded');
+			}
+			const isExternal = isForced || isExternalHref(href);
 			applyLinkAttributes(link, isExternal, isAffiliate);
 			const hasTarget = '_blank' === link.getAttribute('target');
 
@@ -195,7 +202,7 @@
 	 * @return {boolean}
 	 */
 	function isExternalHref(href) {
-		if (href.startsWith('/') || href.startsWith('#') || href.startsWith('?')) {
+		if ((href.startsWith('/') && !href.startsWith('//')) || href.startsWith('#') || href.startsWith('?')) {
 			return false;
 		}
 		try {
@@ -231,7 +238,7 @@
 	 * @return {boolean}
 	 */
 	function isExcludedHref(href) {
-		if (href.startsWith('/') || href.startsWith('#') || href.startsWith('?')) {
+		if ((href.startsWith('/') && !href.startsWith('//')) || href.startsWith('#') || href.startsWith('?')) {
 			return false;
 		}
 		try {
@@ -501,6 +508,30 @@
 
 	// ─── Click handling ───────────────────────────────────────────────────────
 
+	function parseHttpUrl(value) {
+		if (typeof value !== 'string' || !value.trim()) {
+			return null;
+		}
+		try {
+			const url = new URL(value, document.baseURI);
+			return ['http:', 'https:'].includes(url.protocol) ? url : null;
+		} catch (e) {
+			return null;
+		}
+	}
+
+	function getRedirectUrl(link, destination) {
+		const url = parseHttpUrl(link.getAttribute('data-wzlw-redirect-url'));
+		const base = parseHttpUrl(settings.redirectBaseUrl);
+		const target = url ? parseHttpUrl(url.searchParams.get('url')) : null;
+		if (!url || !base || !target || url.origin !== base.origin || url.pathname !== base.pathname ||
+			url.username || url.password || url.hash || url.searchParams.getAll('url').length !== 1 ||
+			target.href !== destination.href) {
+			return null;
+		}
+		return url.href;
+	}
+
 	/**
 	 * Handle link clicks.
 	 *
@@ -508,12 +539,16 @@
 	 */
 	function handleLinkClick(e) {
 		const link = e.target.closest('a[data-wzlw-external], a[data-wzlw-blank]');
-		if (!link) {
+		if (!link || link.hasAttribute('data-wzlw-excluded')) {
+			return;
+		}
+		const destination = parseHttpUrl(link.getAttribute('href'));
+		if (!destination) {
 			return;
 		}
 
 		if ('redirect' === method || 'inline_redirect' === method) {
-			const redirectUrl = link.getAttribute('data-wzlw-redirect-url');
+			const redirectUrl = getRedirectUrl(link, destination);
 			if (redirectUrl) {
 				e.preventDefault();
 				if ('_blank' === link.getAttribute('target')) {
@@ -527,7 +562,7 @@
 
 		if ('modal' === method || 'inline_modal' === method) {
 			// Previously dismissed: let the browser follow the link untouched.
-			if (isDismissed(link.getAttribute('data-wzlw-url') || link.getAttribute('href'))) {
+			if (!modal || isDismissed(destination.href)) {
 				return;
 			}
 			e.preventDefault();
@@ -544,8 +579,11 @@
 	 * @param {HTMLElement} link Link element.
 	 */
 	function showModal(link) {
-		const url = link.getAttribute('data-wzlw-url');
-		modalUrl.textContent = url;
+		const url = parseHttpUrl(link.getAttribute('href'));
+		if (!url) {
+			return;
+		}
+		modalUrl.textContent = url.href;
 		if (modalDismiss) {
 			modalDismiss.checked = false;
 		}
@@ -592,14 +630,18 @@
 		if (!currentLink) {
 			return;
 		}
-		const url = currentLink.getAttribute('data-wzlw-url');
+		const url = parseHttpUrl(currentLink.getAttribute('href'));
+		if (!url) {
+			closeModal();
+			return;
+		}
 		if (modalDismiss && modalDismiss.checked) {
-			storeDismissal(url);
+			storeDismissal(url.href);
 		}
 		if ('_blank' === currentLink.getAttribute('target')) {
-			window.open(url, '_blank', windowOpenFeatures(currentLink));
+			window.open(url.href, '_blank', windowOpenFeatures(currentLink));
 		} else {
-			window.location.href = url;
+			window.location.href = url.href;
 		}
 		closeModal();
 	}
