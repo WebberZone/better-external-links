@@ -94,17 +94,20 @@
 
 			const isAffiliate = !!(inAffiliateWrapper || hasAffiliateClass);
 			const isForced = !!(isAffiliate || inForceExtWrapper || hasForceExtClass);
+			let isExcluded = isExcludedHref(href);
 			if (link.hasAttribute('data-wzlw-excluded')) {
 				if (!isForced) {
 					return;
 				}
 				link.removeAttribute('data-wzlw-excluded');
+				isExcluded = false;
 			}
-			const isExternal = isForced || isExternalHref(href);
+			const isExternal = isForced || (!isExcluded && isExternalHref(href));
+			const isDownload = !isExcluded && isDownloadHref(href);
 			applyLinkAttributes(link, isExternal, isAffiliate);
 			const hasTarget = '_blank' === link.getAttribute('target');
 
-			if (!shouldProcess(isExternal, hasTarget)) {
+			if (!shouldProcess(isExternal, hasTarget, isDownload)) {
 				if (inNoIconWrapper && hasTarget) {
 					appendAriaLabel(link);
 				}
@@ -113,7 +116,7 @@
 
 			// Excluded-domain links with target=_blank reach here under scope=both.
 			// Suppress modal/data attrs but keep ARIA so screen readers know the tab will open.
-			if (!isExternal && hasTarget && isExcludedHref(href)) {
+			if (!isExternal && !isDownload && hasTarget && isExcluded) {
 				appendAriaLabel(link);
 				return;
 			}
@@ -121,6 +124,9 @@
 			link.classList.add('wzlw-processed');
 			if (isExternal) {
 				link.classList.add('wzlw-external');
+			}
+			if (isDownload) {
+				link.classList.add('wzlw-download');
 			}
 			if (inNoIconWrapper && noIconClasses.length) {
 				noIconClasses.forEach(function (c) { link.classList.add(c); });
@@ -132,8 +138,11 @@
 				link.setAttribute('data-wzlw-url', href);
 				if (isExternal) {
 					link.setAttribute('data-wzlw-external', 'true');
-				} else {
+				} else if (hasTarget) {
 					link.setAttribute('data-wzlw-blank', 'true');
+				}
+				if (isDownload) {
+					link.setAttribute('data-wzlw-download', 'true');
 				}
 				if (needsRedirectUrl) {
 					linksNeedingRedirectUrl.push(link);
@@ -141,7 +150,7 @@
 			}
 
 			if (isInlineMethod) {
-				const indicator = buildIndicatorHtml(!!(inNoIconWrapper || hasNoIconClass), hasTarget);
+				const indicator = buildIndicatorHtml(!!(inNoIconWrapper || hasNoIconClass), hasTarget, isDownload);
 				if (indicator) {
 					link.insertAdjacentHTML('beforeend', indicator);
 				}
@@ -231,6 +240,33 @@
 	}
 
 	/**
+	 * Determine if a URL points to a configured downloadable file type.
+	 *
+	 * @param {string} href
+	 * @return {boolean}
+	 */
+	function isDownloadHref(href) {
+		let extensions = settings.downloadExtensions || [];
+		extensions = Array.isArray(extensions) ? extensions : [extensions];
+		extensions = extensions.map(function (extension) {
+			return String(extension).trim().toLowerCase().replace(/^\.+/, '');
+		});
+
+		try {
+			const url = new URL(href, window.location.href);
+			if (!['http:', 'https:'].includes(url.protocol)) {
+				return false;
+			}
+
+			const path = decodeURIComponent(url.pathname).replace(/\/+$/, '');
+			const match = path.match(/\.([a-z0-9]+)$/i);
+			return !!match && extensions.includes(match[1].toLowerCase());
+		} catch (e) {
+			return false;
+		}
+	}
+
+	/**
 	 * Return true if the href matches an excluded domain entry.
 	 * Unlike isExternalHref, this does not check the site host.
 	 *
@@ -270,10 +306,10 @@
 	 * @param {boolean} hasTarget
 	 * @return {boolean}
 	 */
-	function shouldProcess(isExternal, hasTarget) {
+	function shouldProcess(isExternal, hasTarget, isDownload) {
 		return 'both' === (settings.scope || 'external')
-			? (isExternal || hasTarget)
-			: isExternal;
+			? (isExternal || isDownload || hasTarget)
+			: (isExternal || isDownload);
 	}
 
 	/**
@@ -298,9 +334,10 @@
 	 *
 	 * @param {boolean} suppress  True when the link has the no-icon class or is in a no-icon wrapper.
 	 * @param {boolean} hasTarget True when the link has target="_blank".
+	 * @param {boolean} isDownload True when the link points to a configured download extension.
 	 * @return {string}
 	 */
-	function buildIndicatorHtml(suppress, hasTarget) {
+	function buildIndicatorHtml(suppress, hasTarget, isDownload) {
 		const srText = settings.screenReaderText || '';
 		const srSpan = srText ? '<span class="screen-reader-text">' + escHtml(srText) + '</span>' : '';
 
@@ -312,7 +349,8 @@
 		let html = srSpan;
 
 		if ('icon' === visual || 'both' === visual) {
-			html += '<span class="wzlw-icon" aria-hidden="true"></span>';
+			const iconClass = isDownload ? 'wzlw-icon wzlw-download-icon' : 'wzlw-icon';
+			html += '<span class="' + iconClass + '" aria-hidden="true"></span>';
 		}
 		if ('text' === visual || 'both' === visual) {
 			html += '<span class="wzlw-text" aria-hidden="true">' + escHtml(settings.indicatorText || '') + '</span>';
@@ -538,7 +576,7 @@
 	 * @param {Event} e Click event.
 	 */
 	function handleLinkClick(e) {
-		const link = e.target.closest('a[data-wzlw-external], a[data-wzlw-blank]');
+		const link = e.target.closest('a[data-wzlw-external], a[data-wzlw-blank], a[data-wzlw-download]');
 		if (!link || link.hasAttribute('data-wzlw-excluded')) {
 			return;
 		}
@@ -583,6 +621,9 @@
 		if (!url) {
 			return;
 		}
+		const isDownload = link.hasAttribute('data-wzlw-download');
+		modalTitle.textContent = isDownload ? (settings.downloadModalTitle || settings.modalTitle || '') : (settings.modalTitle || '');
+		modalMessage.textContent = isDownload ? (settings.downloadModalMessage || settings.modalMessage || '') : (settings.modalMessage || '');
 		modalUrl.textContent = url.href;
 		if (modalDismiss) {
 			modalDismiss.checked = false;

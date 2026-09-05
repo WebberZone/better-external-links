@@ -26,7 +26,7 @@ function element(attributes = {}) {
 		insertAdjacentHTML(_, html) { this.markup += html; },
 		closest(selector) {
 			if (selector.startsWith('a[')) {
-				return this.hasAttribute('data-wzlw-external') || this.hasAttribute('data-wzlw-blank') ? this : null;
+				return this.hasAttribute('data-wzlw-external') || this.hasAttribute('data-wzlw-blank') || this.hasAttribute('data-wzlw-download') ? this : null;
 			}
 			return selector.startsWith('.') && classes.has(selector.slice(1)) ? this : null;
 		},
@@ -86,6 +86,8 @@ function boot(script, attributes, overrides = {}) {
 	return {
 		link,
 		modal,
+		title,
+		message,
 		displayUrl,
 		location,
 		opened,
@@ -167,6 +169,24 @@ for (const filename of ['modal.js', 'modal.min.js']) {
 	test(`${filename}: network-path external URL is detected`, () => {
 		const page = boot(script, { href: '//outside.test/' });
 		assert.equal(page.link.getAttribute('data-wzlw-external'), 'true');
+	});
+	test(`${filename}: internal configured download URL is processed and uses download copy`, () => {
+		const page = boot(script, { href: '/files/report.PDF?download=1#top' }, {
+			downloadExtensions: ['pdf', 'zip'],
+			downloadModalTitle: 'Download this file',
+			downloadModalMessage: 'The file will be downloaded. Continue?',
+		});
+		assert.equal(page.link.getAttribute('data-wzlw-download'), 'true');
+		assert.equal(page.link.getAttribute('data-wzlw-external'), null);
+		assert.match(page.link.markup, /wzlw-download-icon/);
+		assert.equal(page.click(), true);
+		assert.equal(page.title.textContent, 'Download this file');
+		assert.equal(page.message.textContent, 'The file will be downloaded. Continue?');
+	});
+	test(`${filename}: file extension in a query string is ignored`, () => {
+		const page = boot(script, { href: '/download?file=report.pdf' }, { downloadExtensions: ['pdf'] });
+		assert.equal(page.link.getAttribute('data-wzlw-download'), null);
+		assert.equal(page.link.classList.contains('wzlw-processed'), false);
 	});
 	for (const href of ['/path/', '//site.test/path/', '?query=1', '#section']) {
 		test(`${filename}: internal URL is not marked external: ${href}`, () => {

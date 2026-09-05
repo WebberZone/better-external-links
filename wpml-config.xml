@@ -6,6 +6,8 @@
 			<key name="screen_reader_text" />
 			<key name="modal_title" />
 			<key name="modal_message" />
+			<key name="download_modal_title" />
+			<key name="download_modal_message" />
 			<key name="modal_continue_text" />
 			<key name="modal_cancel_text" />
 			<key name="modal_dismiss_text" />

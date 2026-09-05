@@ -106,6 +106,8 @@ class Settings_Wizard extends Settings_Wizard_API {
 		$modal_keys = array(
 			'modal_title',
 			'modal_message',
+			'download_modal_title',
+			'download_modal_message',
 			'modal_continue_text',
 			'modal_cancel_text',
 			'modal_frequency',

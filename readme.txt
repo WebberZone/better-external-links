@@ -248,12 +248,15 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 
 = 1.6.0 =
 
+* New: Download warnings now cover links whose URL path ends in a configured file extension, including files hosted on the current site. The default extensions are `pdf, zip, doc, docx, xls, xlsx, exe, dmg`.
+* New: Added the **Download Links** section under Advanced with the **Downloadable File Extensions** setting, plus separate **Download Modal Title** and **Download Modal Message** settings under Modal Dialog.
+* New: Download links use a distinct download indicator icon when icons are enabled. Query strings and URL fragments are ignored when matching file extensions.
 * Fix: External links written without a scheme, such as `//example.com/page`, were treated as internal and received no warning.
 * Fix: Redirect screen destinations containing `&`, `#` or `+` failed the signature check and sent visitors to the home page.
 * Fix: Under the redirect methods, force-external links and internal `target="_blank"` links pointing at your own site also sent visitors to the home page instead of the warning screen.
 * Fix: A no-icon, force-external or affiliate wrapper containing an `<iframe>`, `<script>`, `<textarea>` or similar element suppressed every link after it on the page.
 * Fix: Links written with an uppercase `</A>` closing tag received no icon or screen reader text.
-* Fix: Excluded domains are now marked in the markup, so the JavaScript scan honours the same decision as PHP for links outside post content.
+* Fix: Excluded domains are now marked in the markup, so the JavaScript scan honors the same decision as PHP for links outside post content.
 * Improvement: Hardened the modal and redirect scripts against malformed link markup — a destination or redirect URL that does not match the link is now ignored.
 * Improvement: Activation no longer writes a duplicate copy of the default settings.
 
@@ -360,7 +363,7 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 == Upgrade Notice ==
 
 = 1.6.0 =
-Fixes external links written as `//example.com/page` getting no warning, and redirect screens sending visitors to the home page instead of the destination. Also fixes wrappers containing an `<iframe>` or `<script>` suppressing every link after them. No action needed.
+Adds warnings for configured downloadable file types and fixes external links written as `//example.com/page` getting no warning, and redirect screens sending visitors to the home page instead of the destination. Also fixes wrappers containing an `<iframe>` or `<script>` suppressing every link after them. No action needed.
 
 = 1.5.1 =
 Fixes settings not saving correctly on multisite (values leaking between sites) and in the settings wizard (repeater rows silently dropped). No action needed.

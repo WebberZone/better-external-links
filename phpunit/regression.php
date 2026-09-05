@@ -128,7 +128,7 @@ namespace {
 		while ( $processor->next_tag( 'A' ) ) {
 			if ( $href === $processor->get_attribute( 'href' ) ) {
 				$result = array();
-				foreach ( array( 'class', 'rel', 'aria-label', 'data-wzlw-url', 'data-wzlw-external', 'data-wzlw-blank', 'data-wzlw-excluded' ) as $name ) {
+				foreach ( array( 'class', 'rel', 'aria-label', 'data-wzlw-url', 'data-wzlw-external', 'data-wzlw-blank', 'data-wzlw-download', 'data-wzlw-excluded' ) as $name ) {
 					$result[ $name ] = $processor->get_attribute( $name );
 				}
 				return $result;
@@ -172,6 +172,39 @@ namespace {
 		expect( 'true' === link_attributes( $html, '//outside.test/' )['data-wzlw-external'], 'External network-path reference was ignored.' );
 		expect( null === link_attributes( $html, '//site.test/' )['data-wzlw-external'], 'Same-site URL marked external.' );
 		expect( null === link_attributes( $html, '/go/' )['data-wzlw-external'], 'Root-relative URL marked external.' );
+	};
+	$tests['configured download links are processed regardless of host'] = static function () {
+		settings();
+		$html = process(
+			'<a href="/files/report.pdf">internal PDF</a>'
+			. '<a href="https://outside.test/archive.ZIP?download=1#top">external ZIP</a>'
+			. '<a href="/download?file=report.pdf">not a file path</a>'
+		);
+		$internal = link_attributes( $html, '/files/report.pdf' );
+		$external = link_attributes( $html, 'https://outside.test/archive.ZIP?download=1#top' );
+		$other    = link_attributes( $html, '/download?file=report.pdf' );
+		expect( 'true' === $internal['data-wzlw-download'] && null === $internal['data-wzlw-external'], 'Internal download link was not classified as a download.' );
+		expect( 'true' === $external['data-wzlw-download'] && 'true' === $external['data-wzlw-external'], 'External download link was not classified as both external and downloadable.' );
+		expect( null === $other['data-wzlw-download'] && null === $other['data-wzlw-url'], 'A file extension in a query string was treated as a download.' );
+	};
+	$tests['download extension settings are normalized and respected'] = static function () {
+		settings( array( 'download_extensions' => ' .PDF, csv ' ) );
+		$html = process( '<a href="/files/report.pdf">PDF</a><a href="/files/data.CSV">CSV</a><a href="/files/archive.zip">ZIP</a>' );
+		expect( 'true' === link_attributes( $html, '/files/report.pdf' )['data-wzlw-download'], 'Configured PDF extension was not matched.' );
+		expect( 'true' === link_attributes( $html, '/files/data.CSV' )['data-wzlw-download'], 'Configured CSV extension was not matched.' );
+		expect( null === link_attributes( $html, '/files/archive.zip' )['data-wzlw-download'], 'Unconfigured extension was matched.' );
+	};
+	$tests['excluded domains still suppress configured downloads'] = static function () {
+		settings( array( 'excluded_domains' => 'trusted.test' ) );
+		$html = process( '<a href="https://trusted.test/report.pdf">PDF</a>' );
+		$link = link_attributes( $html, 'https://trusted.test/report.pdf' );
+		expect( 'true' === $link['data-wzlw-excluded'] && null === $link['data-wzlw-download'], 'Excluded download link was processed.' );
+	};
+	$tests['download indicators use a distinct icon class'] = static function () {
+		settings();
+		$html = process( '<a href="/files/report.pdf">PDF</a><a href="https://outside.test/page">External</a>' );
+		expect( 1 === substr_count( $html, 'wzlw-download-icon' ), 'Download link did not receive its distinct icon.' );
+		expect( 1 === substr_count( $html, 'class="wzlw-icon"' ), 'External link icon markup changed unexpectedly.' );
 	};
 	foreach ( array( 'external', 'both' ) as $scope ) {
 		$tests[ 'filtered exclusions survive PHP processing: ' . $scope ] = static function () use ( $scope ) {

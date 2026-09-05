@@ -131,6 +131,20 @@ The body text displayed in the modal dialog, below the title.
 **Default:** `You are about to visit an external website. Continue?`
 **Setting key:** `modal_message`
 
+#### Download Modal Title
+
+The heading displayed when a visitor follows a link whose URL path ends in a configured downloadable file extension.
+
+**Default:** `You are about to download a file`
+**Setting key:** `download_modal_title`
+
+#### Download Modal Message
+
+The body text displayed for configured downloadable file links.
+
+**Default:** `This link will download a file. Continue?`
+**Setting key:** `download_modal_message`
+
 #### Continue Button Text
 
 The label for the button that opens the external link.
@@ -205,6 +219,15 @@ The number of seconds before the page automatically redirects to the external UR
 **Setting key:** `redirect_countdown`
 
 ## Advanced tab
+
+### Download Links
+
+#### Downloadable File Extensions
+
+A comma-separated list of file extensions whose links should receive a download warning. Matching uses the URL path, is case-insensitive, and ignores query strings and fragments. Internal and external URLs are both supported. Do not include the leading dot.
+
+**Default:** `pdf, zip, doc, docx, xls, xlsx, exe, dmg`
+**Setting key:** `download_extensions`
 
 ### Link Attributes
 

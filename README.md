@@ -37,6 +37,7 @@ WebberZone Link Warnings uses a two-layer approach to process links across your 
 - __Flexible Scope__: Target external links only, or external links plus all `target="_blank"` links
 - __Customizable Indicators__: Configure visual icons, text, or screen reader-only warnings
 - __Modal Dialog__: Show a confirmation dialog before users navigate to external sites with keyboard navigation and focus management
+- __Download Link Warnings__: Warn visitors before downloading configured file types, including files hosted on your own site
 - __Dismissible Modals__: Let repeat visitors tick "Don't show again" so the modal is skipped for a session or for a set number of days, per destination domain or sitewide
 - __Redirect Screen__: Display an intermediate page with a configurable countdown before external navigation
 - __Force External__: Add a class to any link or wrapper element to force it to be treated as external — useful for tracking URLs or redirects that use internal paths
@@ -93,6 +94,7 @@ After activation, the setup wizard guides you through the initial configuration.
 
 4. __Configure Modal/Redirect__ (if applicable)
    - Modal title and message
+   - Download modal title and message
    - Button text
    - Modal frequency, dismissal scope and "Don't show again" label
    - Redirect page content and countdown duration
@@ -100,6 +102,7 @@ After activation, the setup wizard guides you through the initial configuration.
 5. __Advanced Settings__
    - Link attributes for external and affiliate links (`nofollow`, `sponsored`, `ugc`, open in a new tab, `noopener`, `noreferrer`)
    - Affiliate link class and wrapper class (defaults: `wzlw-affiliate`, `wzlw-affiliate-wrapper`)
+   - Downloadable file extensions (default: `pdf, zip, doc, docx, xls, xlsx, exe, dmg`)
    - Excluded domains
    - Enabled post types
    - Force-external class name (default: `wzlw-force-external`)
@@ -122,6 +125,12 @@ __Dismissal Scope__ controls the reach of a dismissal:
 Everything is stored in the visitor's browser under the `wzlwDismissed` key. No cookies are set, nothing is written to the database, and no dismissal is tied to a user account, so the state is per browser rather than per person.
 
 The checkbox label comes from the __Don't Show Again Label__ setting and is registered in `wpml-config.xml` for string translation.
+
+## Warning before downloads
+
+Links whose URL path ends in a configured file extension are treated as downloadable files, even when the file is hosted on the current site. The default extensions are `pdf, zip, doc, docx, xls, xlsx, exe, dmg`. Change the comma-separated list under __Settings > WebberZone Link Warnings > Advanced > Download Links__.
+
+Download links use their own modal title and message, configured under __Display > Modal Dialog__. They also receive a download indicator icon when icons are enabled. Query strings and fragments are ignored when matching extensions, so `/download?file=report.pdf` is not matched unless the path itself ends in `.pdf`.
 
 ## Excluding Icons on Specific Links
 

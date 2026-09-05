@@ -137,10 +137,11 @@ class Content_Processor {
 			$is_forced    = $is_affiliate || $force_external_depth > 0 || $this->link_has_force_external_class( $processor );
 			$is_excluded  = ! $is_forced && $this->is_excluded_domain( $href );
 			$is_external  = $is_forced || ( ! $is_excluded && $this->is_external_link( $href ) );
+			$is_download  = ! $is_excluded && $this->is_download_link( $href );
 
 			if ( $is_excluded ) {
 				$processor->set_attribute( 'data-wzlw-excluded', 'true' );
-				foreach ( array( 'data-wzlw-url', 'data-wzlw-external', 'data-wzlw-blank', 'data-wzlw-redirect-url' ) as $attribute ) {
+				foreach ( array( 'data-wzlw-url', 'data-wzlw-external', 'data-wzlw-blank', 'data-wzlw-download', 'data-wzlw-redirect-url' ) as $attribute ) {
 					$processor->remove_attribute( $attribute );
 				}
 			} else {
@@ -148,7 +149,7 @@ class Content_Processor {
 			}
 			$this->apply_link_attributes( $processor, $is_external, $is_affiliate );
 			$has_target     = '_blank' === $processor->get_attribute( 'target' );
-			$should_process = $this->should_process_link( $is_external, $has_target );
+			$should_process = $this->should_process_link( $is_external, $has_target, $is_download );
 
 			// Inside a skip wrapper, target="_blank" links still need ARIA for accessibility
 			// even when the visual icon/modal is suppressed.
@@ -177,8 +178,11 @@ class Content_Processor {
 				$processor->set_attribute( 'data-wzlw-url', $href );
 				if ( $is_external ) {
 					$processor->set_attribute( 'data-wzlw-external', 'true' );
-				} else {
+				} elseif ( $has_target ) {
 					$processor->set_attribute( 'data-wzlw-blank', 'true' );
+				}
+				if ( $is_download ) {
+					$processor->set_attribute( 'data-wzlw-download', 'true' );
 				}
 				if ( in_array( $warning_method, array( 'redirect', 'inline_redirect' ), true ) ) {
 					$processor->set_attribute( 'data-wzlw-redirect-url', Redirect_Handler::get_redirect_url( $href ) );
@@ -196,6 +200,9 @@ class Content_Processor {
 			$new_class      = trim( $existing_class . ' wzlw-processed' );
 			if ( $is_external ) {
 				$new_class .= ' wzlw-external';
+			}
+			if ( $is_download ) {
+				$new_class .= ' wzlw-download';
 			}
 			if ( $skip_depth > 0 ) {
 				$no_icon_classes = $this->parse_class_setting( 'no_icon_class', 'wzlw-no-icon' );
@@ -445,7 +452,8 @@ class Content_Processor {
 			return $link_html;
 		}
 
-		$indicator = $this->get_visual_indicator();
+		$is_download = (bool) preg_match( '/\bclass=["\'][^"\']*\bwzlw-download\b[^"\']*["\']/i', $link_html );
+		$indicator   = $this->get_visual_indicator( $is_download );
 
 		if ( empty( $indicator ) ) {
 			return $link_html;
@@ -537,9 +545,10 @@ class Content_Processor {
 	 * Get visual indicator HTML.
 	 *
 	 * @since 1.0.0
+	 * @param bool $is_download Whether the link points to a configured download extension.
 	 * @return string Indicator HTML.
 	 */
-	private function get_visual_indicator() {
+	private function get_visual_indicator( $is_download = false ) {
 		$visual = $this->settings['visual_indicator'] ?? 'icon';
 
 		if ( 'none' === $visual ) {
@@ -554,7 +563,8 @@ class Content_Processor {
 		// Add visual elements.
 		if ( 'icon' === $visual || 'both' === $visual ) {
 			// Icon is added via CSS ::before pseudo-element using CSS variable.
-			$indicator .= '<span class="wzlw-icon" aria-hidden="true"></span>';
+			$icon_class = $is_download ? 'wzlw-icon wzlw-download-icon' : 'wzlw-icon';
+			$indicator .= '<span class="' . $icon_class . '" aria-hidden="true"></span>';
 		}
 
 		if ( 'text' === $visual || 'both' === $visual ) {
@@ -699,21 +709,89 @@ class Content_Processor {
 	 * @since 1.0.0
 	 * @param bool $is_external Whether link is external.
 	 * @param bool $has_target  Whether link has target="_blank".
+	 * @param bool $is_download Whether link points to a configured download extension.
 	 * @return bool True if should be processed.
 	 */
-	private function should_process_link( $is_external, $has_target ) {
+	private function should_process_link( $is_external, $has_target, $is_download = false ) {
 		$scope = isset( $this->settings['scope'] ) ? $this->settings['scope'] : 'external';
 
 		switch ( $scope ) {
 			case 'external':
-				return $is_external;
+				return $is_external || $is_download;
 
 			case 'both':
-				return $is_external || $has_target;
+				return $is_external || $is_download || $has_target;
 
 			default:
 				return $is_external;
 		}
+	}
+
+	/**
+	 * Check if a URL points to a configured downloadable file type.
+	 *
+	 * @since 1.6.0
+	 * @param string $url URL to check.
+	 * @return bool True if the URL ends with a configured file extension.
+	 */
+	private function is_download_link( string $url ): bool {
+		$parsed_url = wp_parse_url( $url );
+
+		if ( ! is_array( $parsed_url ) || empty( $parsed_url['path'] ) ) {
+			return false;
+		}
+
+		if ( ! empty( $parsed_url['scheme'] ) && ! in_array( strtolower( $parsed_url['scheme'] ), array( 'http', 'https' ), true ) ) {
+			return false;
+		}
+
+		if ( ! empty( $parsed_url['scheme'] ) && empty( $parsed_url['host'] ) ) {
+			return false;
+		}
+
+		$path = rtrim( rawurldecode( (string) $parsed_url['path'] ), '/' );
+		if ( ! preg_match( '/\.([a-z0-9]+)$/i', $path, $matches ) ) {
+			return false;
+		}
+
+		return in_array( strtolower( $matches[1] ), $this->get_download_extensions(), true );
+	}
+
+	/**
+	 * Get configured downloadable file extensions.
+	 *
+	 * @since 1.6.0
+	 * @return string[] Normalized file extensions.
+	 */
+	private function get_download_extensions(): array {
+		$raw = isset( $this->settings['download_extensions'] ) ? $this->settings['download_extensions'] : 'pdf, zip, doc, docx, xls, xlsx, exe, dmg';
+
+		if ( ! is_string( $raw ) ) {
+			return array();
+		}
+
+		$extensions = preg_split( '/[\s,]+/', strtolower( $raw ), -1, PREG_SPLIT_NO_EMPTY );
+		if ( ! is_array( $extensions ) ) {
+			return array();
+		}
+
+		$extensions = array_map(
+			static function ( $extension ) {
+				return ltrim( trim( $extension ), '.' );
+			},
+			$extensions
+		);
+
+		return array_values(
+			array_unique(
+				array_filter(
+					$extensions,
+					static function ( $extension ) {
+						return (bool) preg_match( '/^[a-z0-9]+$/', $extension );
+					}
+				)
+			)
+		);
 	}
 
 	/**
