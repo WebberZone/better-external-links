@@ -14,7 +14,7 @@
  * Plugin Name: WebberZone Link Warnings
  * Plugin URI: https://webberzone.com/plugins/webberzone-link-warnings/
  * Description: Enhances accessibility by warning users when links open in new windows or navigate to external sites.
- * Version: 1.5.2
+ * Version: 1.6.0
  * Author: WebberZone
  * Author URI: https://webberzone.com/
  * License: GPL-2.0+
@@ -31,7 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'WZLW_VERSION', '1.5.2' );
+define( 'WZLW_VERSION', '1.6.0' );
 define( 'WZLW_PLUGIN_FILE', __FILE__ );
 define( 'WZLW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WZLW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

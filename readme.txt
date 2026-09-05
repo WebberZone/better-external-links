@@ -5,7 +5,7 @@ Donate link: https://ajaydsouza.com/donate/
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.2
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -246,7 +246,7 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 
 == Changelog ==
 
-= 1.5.2 =
+= 1.6.0 =
 
 * Fix: External links written without a scheme, such as `//example.com/page`, were treated as internal and received no warning.
 * Fix: Redirect screen destinations containing `&`, `#` or `+` failed the signature check and sent visitors to the home page.
@@ -359,7 +359,7 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 
 == Upgrade Notice ==
 
-= 1.5.2 =
+= 1.6.0 =
 Fixes external links written as `//example.com/page` getting no warning, and redirect screens sending visitors to the home page instead of the destination. Also fixes wrappers containing an `<iframe>` or `<script>` suppressing every link after them. No action needed.
 
 = 1.5.1 =

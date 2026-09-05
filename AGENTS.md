@@ -18,7 +18,7 @@ This file provides guidance to AI coding agents working with code in this reposi
 
 ## Plugin Overview
 
-**WebberZone Link Warnings** (v1.5.2) adds configurable warnings to external/affiliate links or any URL pattern, showing a modal countdown or inline icon before the visitor leaves. Namespace: `WebberZone\Link_Warnings`. Constants: `WZLW_VERSION`, `WZLW_PLUGIN_FILE`, `WZLW_PLUGIN_DIR`, `WZLW_PLUGIN_URL`, `WZLW_PLUGIN_BASENAME`. Requires WordPress 6.6+, PHP 7.4+. No Freemius.
+**WebberZone Link Warnings** (v1.6.0) adds configurable warnings to external/affiliate links or any URL pattern, showing a modal countdown or inline icon before the visitor leaves. Namespace: `WebberZone\Link_Warnings`. Constants: `WZLW_VERSION`, `WZLW_PLUGIN_FILE`, `WZLW_PLUGIN_DIR`, `WZLW_PLUGIN_URL`, `WZLW_PLUGIN_BASENAME`. Requires WordPress 6.6+, PHP 7.4+. No Freemius.
 
 Settings prefix/key: `wzlw` / `wzlw_settings` (wp_options). Access via `wzlw_get_option($key)` / `wzlw_get_settings()`.
 
