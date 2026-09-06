@@ -32,6 +32,9 @@ jobs:
     name: "PHP ${{ matrix.php }} - WP ${{ matrix.wp }} - MySQL ${{ matrix.mysql }}"
     continue-on-error: ${{ matrix.experimental == true }}
 
+    env:
+      WP_CORE_DIR: /tmp/wordpress
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -81,3 +84,22 @@ jobs:
         env:
           WP_MULTISITE: 1
         run: vendor/bin/phpunit
+
+      - name: Run content processor regression suite
+        run: php phpunit/regression.php "$WP_CORE_DIR"
+
+  modal-js:
+    runs-on: ubuntu-latest
+    name: "Modal script tests"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run modal script tests
+        run: node --test phpunit/modal.test.js
