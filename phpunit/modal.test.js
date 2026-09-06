@@ -4,7 +4,7 @@ const { join } = require('node:path');
 const { test } = require('node:test');
 const vm = require('node:vm');
 
-function element(attributes = {}) {
+function element(attributes = {}, innerMarkup = '') {
 	const attrs = { ...attributes };
 	const listeners = {};
 	const classes = new Set((attrs.class || '').split(/\s+/).filter(Boolean));
@@ -12,7 +12,7 @@ function element(attributes = {}) {
 		listeners,
 		textContent: '',
 		checked: false,
-		markup: '',
+		markup: innerMarkup,
 		getAttribute: (name) => name === 'class' ? [...classes].join(' ') : (attrs[name] ?? null),
 		hasAttribute: (name) => Object.hasOwn(attrs, name),
 		setAttribute: (name, value) => { attrs[name] = String(value); },
@@ -24,6 +24,10 @@ function element(attributes = {}) {
 		},
 		addEventListener: (name, listener) => { listeners[name] = listener; },
 		insertAdjacentHTML(_, html) { this.markup += html; },
+		querySelector(selector) {
+			const names = selector.split(',').map((name) => name.trim().replace(/^\./, ''));
+			return names.some((name) => this.markup.includes(name)) ? element() : null;
+		},
 		closest(selector) {
 			if (selector.startsWith('a[')) {
 				return this.hasAttribute('data-wzlw-external') || this.hasAttribute('data-wzlw-blank') || this.hasAttribute('data-wzlw-download') ? this : null;
@@ -34,8 +38,8 @@ function element(attributes = {}) {
 	};
 }
 
-function boot(script, attributes, overrides = {}) {
-	const link = element(attributes);
+function boot(script, attributes, overrides = {}, innerMarkup = '') {
+	const link = element(attributes, innerMarkup);
 	const modal = element({ hidden: '' });
 	const title = element();
 	const message = element();
@@ -61,7 +65,7 @@ function boot(script, attributes, overrides = {}) {
 		readyState: 'complete',
 		body: { children: [modal], classList: element().classList },
 		getElementById: () => modal,
-		querySelectorAll: () => link.classList.contains('wzlw-processed') ? [] : [link],
+		querySelectorAll: () => [link],
 		addEventListener: (name, callback) => { listeners[name] = callback; },
 	};
 	const context = {
@@ -187,6 +191,25 @@ for (const filename of ['modal.js', 'modal.min.js']) {
 		const page = boot(script, { href: '/download?file=report.pdf' }, { downloadExtensions: ['pdf'] });
 		assert.equal(page.link.getAttribute('data-wzlw-download'), null);
 		assert.equal(page.link.classList.contains('wzlw-processed'), false);
+	});
+	test(`${filename}: author-written marker class is not an opt-out`, () => {
+		const page = boot(script, { href: 'https://outside.test/marker/', class: 'wzlw-processed' });
+		assert.equal(page.link.getAttribute('data-wzlw-external'), 'true');
+		assert.equal(page.link.getAttribute('data-wzlw-url'), 'https://outside.test/marker/');
+		assert.match(page.link.markup, /wzlw-icon/);
+		assert.equal(page.click(), true);
+	});
+	test(`${filename}: a PHP-processed link is left alone`, () => {
+		const page = boot(script, { href: 'https://outside.test/done/', class: 'wzlw-processed wzlw-external', 'data-wzlw-external': 'true', 'data-wzlw-url': 'https://outside.test/done/' });
+		assert.equal(page.link.markup, '');
+	});
+	test(`${filename}: a PHP-processed inline-only link is left alone`, () => {
+		const page = boot(script, { href: 'https://outside.test/inline/', class: 'wzlw-processed wzlw-external' }, { warningMethod: 'inline' }, '<span class="screen-reader-text">Opens in a new window</span><span class="wzlw-icon" aria-hidden="true"></span>');
+		assert.equal(page.link.markup, '<span class="screen-reader-text">Opens in a new window</span><span class="wzlw-icon" aria-hidden="true"></span>');
+	});
+	test(`${filename}: an existing ARIA label is not appended twice`, () => {
+		const page = boot(script, { href: 'https://outside.test/aria/', class: 'wzlw-processed wzlw-external', 'aria-label': 'Docs, Opens in a new window' }, { screenReaderText: 'Opens in a new window', warningMethod: 'none' });
+		assert.equal(page.link.getAttribute('aria-label'), 'Docs, Opens in a new window');
 	});
 	for (const href of ['/path/', '//site.test/path/', '?query=1', '#section']) {
 		test(`${filename}: internal URL is not marked external: ${href}`, () => {

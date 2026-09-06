@@ -44,6 +44,9 @@ namespace {
 	function is_multisite() {
 		return false;
 	}
+	function is_admin() {
+		return ! empty( $GLOBALS['wzlw_test_is_admin'] );
+	}
 	function is_singular() {
 		return true;
 	}
@@ -105,6 +108,8 @@ namespace {
 			$settings
 		);
 		$GLOBALS['wzlw_test_updates']  = array();
+		$GLOBALS['wzlw_test_is_admin'] = false;
+		$GLOBALS['wzlw_test_is_rest']  = false;
 		Options_API::flush_cache();
 	}
 	function is_valid_url( $url ) {
@@ -256,6 +261,37 @@ namespace {
 		$second = apply_filters( 'render_block', $first, $block );
 		expect( 1 === substr_count( $second, 'screen-reader-text' ), 'A screen-reader-only indicator was duplicated.' );
 	};
+	$tests['the marker class is not an opt-out for content authors'] = static function () {
+		settings( array( 'link_attributes_external' => array( 'nofollow', 'target_blank', 'noopener' ) ) );
+		$html  = process( '<a class="wzlw-processed" href="https://outside.test/marker/">go</a>' );
+		$attrs = link_attributes( $html, 'https://outside.test/marker/' );
+		expect( 'true' === $attrs['data-wzlw-external'], 'An author-supplied marker class suppressed the warning attributes.' );
+		expect( 'nofollow noopener' === $attrs['rel'], 'An author-supplied marker class suppressed the configured rel attributes.' );
+		expect( 1 === substr_count( (string) $attrs['class'], 'wzlw-processed' ), 'The marker class was duplicated.' );
+		expect( 1 === substr_count( $html, 'class="wzlw-icon"' ), 'An author-supplied marker class changed the indicator markup.' );
+	};
+	$tests['repeated classification does not duplicate classes or ARIA labels'] = static function () {
+		settings();
+		$content = '<a aria-label="Product page" href="https://outside.test/repeat/">go</a>';
+		$block   = array( 'blockName' => 'core/template-part' );
+		$first   = apply_filters( 'render_block', $content, $block );
+		$second  = apply_filters( 'render_block', $first, $block );
+		$attrs   = link_attributes( $second, 'https://outside.test/repeat/' );
+		expect( 'wzlw-processed wzlw-external' === $attrs['class'], 'Classes were duplicated on a second pass: ' . $attrs['class'] );
+		expect( 'Product page, Opens in a new window' === $attrs['aria-label'], 'The ARIA label was appended twice: ' . $attrs['aria-label'] );
+	};
+	function expect_external_content_untouched( $context ) {
+		$content = '<a href="https://outside.test/context/">external link</a>';
+		expect( $content === apply_filters( 'comment_text', $content, null, array() ), 'comment_text was processed during ' . $context . '.' );
+		expect( $content === apply_filters( 'render_block', $content, array( 'blockName' => 'core/template-part' ) ), 'render_block was processed during ' . $context . '.' );
+		expect( $content === apply_filters( 'widget_block_content', $content, array(), null ), 'widget_block_content was processed during ' . $context . '.' );
+		expect( $content === apply_filters( 'wp_nav_menu', $content, (object) array() ), 'wp_nav_menu was processed during ' . $context . '.' );
+	}
+	$tests['external content filters are skipped in admin requests'] = static function () {
+		settings();
+		$GLOBALS['wzlw_test_is_admin'] = true;
+		expect_external_content_untouched( 'an admin request' );
+	};
 	$tests['existing screen-reader markup does not suppress visual indicators'] = static function () {
 		settings();
 		$content = '<a href="https://outside.test/custom/">external link<span class="screen-reader-text">Existing context</span></a>';
@@ -384,6 +420,13 @@ namespace {
 		settings();
 		$html = process( "<a class='wzlw-no-icon' href='https://outside.test/' target='_blank'>test</a>" );
 		expect( false === strpos( $html, 'class="wzlw-icon"' ) && 1 === substr_count( $html, 'class="screen-reader-text"' ), 'Single-quoted no-icon link lost its screen-reader text.' );
+	};
+
+	// Registered last: REST_REQUEST is a constant and cannot be unset for later tests.
+	$tests['external content filters are skipped in REST requests'] = static function () {
+		settings();
+		define( 'REST_REQUEST', true );
+		expect_external_content_untouched( 'a REST request' );
 	};
 
 	$failed = 0;

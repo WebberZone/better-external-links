@@ -140,11 +140,6 @@ class Content_Processor {
 				continue;
 			}
 
-			// Avoid reprocessing content that passed through another supported filter.
-			if ( $this->link_is_processed( $processor ) ) {
-				continue;
-			}
-
 			// Determine if link should be processed.
 			$is_affiliate = $affiliate_depth > 0 || $this->link_has_affiliate_class( $processor );
 			$is_forced    = $is_affiliate || $force_external_depth > 0 || $this->link_has_force_external_class( $processor );
@@ -209,21 +204,17 @@ class Content_Processor {
 			}
 
 			// Add class for styling.
-			$existing_class = $processor->get_attribute( 'class' );
-			$new_class      = trim( $existing_class . ' wzlw-processed', " \t\n\r\0\x0B" );
+			$new_classes = array( 'wzlw-processed' );
 			if ( $is_external ) {
-				$new_class .= ' wzlw-external';
+				$new_classes[] = 'wzlw-external';
 			}
 			if ( $is_download ) {
-				$new_class .= ' wzlw-download';
+				$new_classes[] = 'wzlw-download';
 			}
 			if ( $skip_depth > 0 ) {
-				$no_icon_classes = $this->parse_class_setting( 'no_icon_class', 'wzlw-no-icon' );
-				if ( ! empty( $no_icon_classes ) ) {
-					$new_class .= ' ' . implode( ' ', $no_icon_classes );
-				}
+				$new_classes = array_merge( $new_classes, $this->parse_class_setting( 'no_icon_class', 'wzlw-no-icon' ) );
 			}
-			$processor->set_attribute( 'class', $new_class );
+			$processor->set_attribute( 'class', $this->merge_classes( $processor->get_attribute( 'class' ), $new_classes ) );
 		}
 
 		$processed_content = $processor->get_updated_html();
@@ -318,11 +309,24 @@ class Content_Processor {
 	 * @return mixed Processed content or the original value.
 	 */
 	private function process_external_content( $content, $setting_id ) {
-		if ( ! is_string( $content ) || '' === $content || ! wzlw_get_option( $setting_id, true ) ) {
+		if ( ! is_string( $content ) || '' === $content || ! $this->is_frontend_request() || ! wzlw_get_option( $setting_id, true ) ) {
 			return $content;
 		}
 
 		return $this->process_content( $content, true );
+	}
+
+	/**
+	 * Check whether the current request renders the site frontend.
+	 *
+	 * Core also runs `comment_text` and `render_block` in wp-admin and in REST responses,
+	 * which `is_post_type_enabled()` keeps the post content filters out of.
+	 *
+	 * @since 1.6.0
+	 * @return bool True when the request is a frontend page load.
+	 */
+	private function is_frontend_request() {
+		return ! is_admin() && ! wp_is_serving_rest_request();
 	}
 
 	/**
@@ -343,23 +347,6 @@ class Content_Processor {
 		);
 
 		return $content;
-	}
-
-	/**
-	 * Check whether a link has already been processed by this plugin.
-	 *
-	 * @since 1.6.0
-	 * @param \WP_HTML_Tag_Processor $processor HTML tag processor instance.
-	 * @return bool True when the link has already been processed.
-	 */
-	private function link_is_processed( \WP_HTML_Tag_Processor $processor ) {
-		$class = $processor->get_attribute( 'class' );
-
-		if ( ! is_string( $class ) || '' === $class ) {
-			return false;
-		}
-
-		return in_array( 'wzlw-processed', preg_split( '/\s+/', trim( $class, " \t\n\r\0\x0B" ) ), true );
 	}
 
 	/**
@@ -725,10 +712,34 @@ class Content_Processor {
 		$screen_reader_text = $this->settings['screen_reader_text'] ?? __( 'Opens in a new window', 'webberzone-link-warnings' );
 
 		if ( $existing_label ) {
+			// The same markup can reach this more than once via nested content filters.
+			if ( '' !== $screen_reader_text && substr( $existing_label, -strlen( $screen_reader_text ) ) === $screen_reader_text ) {
+				return $existing_label;
+			}
+
 			return $existing_label . ', ' . $screen_reader_text;
 		}
 
 		return null; // Let the screen reader text span handle it.
+	}
+
+	/**
+	 * Merge class names into an existing class attribute without duplicating them.
+	 *
+	 * @since 1.6.0
+	 * @param string|null $existing_class Existing class attribute value.
+	 * @param string[]    $new_classes    Class names to add.
+	 * @return string Merged class attribute value.
+	 */
+	private function merge_classes( $existing_class, array $new_classes ) {
+		$classes = array();
+
+		if ( is_string( $existing_class ) && '' !== trim( $existing_class, " \t\n\r\0\x0B" ) ) {
+			$classes = preg_split( '/\s+/', trim( $existing_class, " \t\n\r\0\x0B" ) );
+			$classes = is_array( $classes ) ? $classes : array();
+		}
+
+		return implode( ' ', array_unique( array_merge( $classes, $new_classes ) ) );
 	}
 
 	/**

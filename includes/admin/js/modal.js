@@ -79,9 +79,13 @@
 
 		const linksNeedingRedirectUrl = [];
 
-		document.querySelectorAll('a:not(.wzlw-processed)').forEach(function (link) {
+		document.querySelectorAll('a').forEach(function (link) {
 			const href = link.getAttribute('href');
 			if (!href) {
+				return;
+			}
+
+			if (isServerProcessed(link)) {
 				return;
 			}
 
@@ -160,6 +164,28 @@
 		if (linksNeedingRedirectUrl.length) {
 			fetchRedirectUrls(linksNeedingRedirectUrl);
 		}
+	}
+
+	/**
+	 * Return true if PHP already processed this link.
+	 *
+	 * The marker class alone is not proof: a content author can write it, and skipping
+	 * on that would let any link opt out of every warning. PHP always leaves state
+	 * alongside it — data attributes under the modal and redirect methods, an indicator
+	 * or screen reader span under the inline methods.
+	 *
+	 * @param {HTMLAnchorElement} link Link to test.
+	 * @return {boolean}
+	 */
+	function isServerProcessed(link) {
+		if (!link.classList.contains('wzlw-processed')) {
+			return false;
+		}
+
+		const stateAttributes = ['data-wzlw-url', 'data-wzlw-external', 'data-wzlw-blank', 'data-wzlw-download', 'data-wzlw-redirect-url', 'data-wzlw-excluded'];
+
+		return stateAttributes.some(function (name) { return link.hasAttribute(name); })
+			|| !!link.querySelector('.wzlw-icon, .wzlw-text, .screen-reader-text');
 	}
 
 	/**
@@ -323,7 +349,7 @@
 			return;
 		}
 		const existing = link.getAttribute('aria-label');
-		if (existing) {
+		if (existing && !existing.endsWith(srText)) {
 			link.setAttribute('aria-label', existing + ', ' + srText);
 		}
 	}
