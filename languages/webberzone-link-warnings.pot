@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: WebberZone Link Warnings 1.5.1\n"
+"Project-Id-Version: WebberZone Link Warnings 1.6.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/webberzone-link-warnings\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-19T20:24:22+00:00\n"
+"POT-Creation-Date: 2026-09-06T02:31:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: webberzone-link-warnings\n"
@@ -52,59 +52,6 @@ msgstr ""
 msgid "WebberZone Link Warnings requires WordPress 6.6 or higher. You are running WordPress %s"
 msgstr ""
 
-#: includes/admin/class-activator.php:116
-#: includes/admin/class-settings.php:433
-#: includes/class-content-processor.php:550
-#: includes/class-frontend-handler.php:108
-msgid "(opens in new window)"
-msgstr ""
-
-#: includes/admin/class-activator.php:117
-#: includes/admin/class-settings.php:440
-#: includes/class-content-processor.php:564
-#: includes/class-content-processor.php:576
-#: includes/class-frontend-handler.php:109
-msgid "Opens in a new window"
-msgstr ""
-
-#: includes/admin/class-activator.php:118
-#: includes/admin/class-settings.php:455
-#: includes/class-frontend-handler.php:110
-msgid "You are leaving this site"
-msgstr ""
-
-#: includes/admin/class-activator.php:119
-#: includes/admin/class-settings.php:462
-#: includes/class-frontend-handler.php:111
-msgid "You are about to visit an external website. Continue?"
-msgstr ""
-
-#: includes/admin/class-activator.php:120
-#: includes/admin/class-settings.php:469
-#: includes/class-frontend-handler.php:112
-#: includes/class-frontend-handler.php:158
-msgid "Continue"
-msgstr ""
-
-#: includes/admin/class-activator.php:121
-#: includes/admin/class-settings.php:476
-#: includes/class-frontend-handler.php:113
-#: includes/class-frontend-handler.php:157
-msgid "Cancel"
-msgstr ""
-
-#: includes/admin/class-activator.php:125
-#: includes/admin/class-settings.php:516
-#: includes/class-frontend-handler.php:137
-msgid "Don't show this warning again"
-msgstr ""
-
-#: includes/admin/class-activator.php:126
-#: includes/admin/class-settings.php:531
-#: includes/class-redirect-handler.php:169
-msgid "You are being redirected to an external site."
-msgstr ""
-
 #: includes/admin/class-admin.php:90
 msgid "WebberZone Link Warnings quick links"
 msgstr ""
@@ -123,13 +70,13 @@ msgstr ""
 
 #: includes/admin/class-admin.php:98
 #: includes/admin/class-settings.php:187
-#: includes/admin/class-settings.php:751
+#: includes/admin/class-settings.php:821
 msgid "Settings"
 msgstr ""
 
 #: includes/admin/class-admin.php:104
-#: includes/admin/class-settings.php:696
-#: includes/admin/class-settings.php:769
+#: includes/admin/class-settings.php:766
+#: includes/admin/class-settings.php:839
 #: includes/admin/sidebar.php:32
 msgid "Support"
 msgstr ""
@@ -138,99 +85,99 @@ msgstr ""
 msgid "More Plugins"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:130
+#: includes/admin/class-settings-wizard.php:132
 msgid "Welcome to WebberZone Link Warnings"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:131
+#: includes/admin/class-settings-wizard.php:133
 msgid "Thank you for installing WebberZone Link Warnings! This wizard will help you configure the essential settings to make your external links accessible and user-friendly."
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:135
+#: includes/admin/class-settings-wizard.php:137
 msgid "General Settings"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:136
+#: includes/admin/class-settings-wizard.php:138
 msgid "Choose how to warn users about external links and which links should be processed."
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:140
+#: includes/admin/class-settings-wizard.php:142
 msgid "Visual Indicators"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:141
+#: includes/admin/class-settings-wizard.php:143
 msgid "Configure visual indicators and screen reader text for accessibility."
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:145
-#: includes/admin/class-settings.php:446
+#: includes/admin/class-settings-wizard.php:147
+#: includes/admin/class-settings.php:488
 msgid "Modal Dialog"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:146
+#: includes/admin/class-settings-wizard.php:148
 msgid "Customize the modal dialog text and buttons."
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:150
-#: includes/admin/class-settings.php:522
+#: includes/admin/class-settings-wizard.php:152
+#: includes/admin/class-settings.php:578
 msgid "Redirect Screen"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:151
+#: includes/admin/class-settings-wizard.php:153
 msgid "Configure the redirect screen message."
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:194
+#: includes/admin/class-settings-wizard.php:196
 msgid "WebberZone Link Warnings Setup Wizard"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:195
+#: includes/admin/class-settings-wizard.php:197
 msgid "Setup Wizard"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:196
+#: includes/admin/class-settings-wizard.php:198
 msgid "Next Step"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:197
+#: includes/admin/class-settings-wizard.php:199
 msgid "Previous Step"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:198
+#: includes/admin/class-settings-wizard.php:200
 msgid "Finish Setup"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:199
+#: includes/admin/class-settings-wizard.php:201
 msgid "Skip Wizard"
 msgstr ""
 
 #. translators: %1$d: Current step number, %2$d: Total number of steps
-#: includes/admin/class-settings-wizard.php:201
+#: includes/admin/class-settings-wizard.php:203
 #, php-format
 msgid "Step %1$d of %2$d"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:202
+#: includes/admin/class-settings-wizard.php:204
 msgid "Setup Complete!"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:203
+#: includes/admin/class-settings-wizard.php:205
 msgid "Your WebberZone Link Warnings plugin has been configured successfully. Your external links are now accessible and user-friendly!"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:204
+#: includes/admin/class-settings-wizard.php:206
 msgid "Go to Settings"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:246
+#: includes/admin/class-settings-wizard.php:248
 msgid "Welcome to WebberZone Link Warnings! Would you like to run the setup wizard to configure the plugin?"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:248
+#: includes/admin/class-settings-wizard.php:250
 msgid "Run Setup Wizard"
 msgstr ""
 
-#: includes/admin/class-settings-wizard.php:249
+#: includes/admin/class-settings-wizard.php:251
 msgid "Skip Setup"
 msgstr ""
 
@@ -288,374 +235,493 @@ msgstr ""
 msgid "Link Warnings"
 msgstr ""
 
-#: includes/admin/class-settings.php:295
-#: includes/admin/class-settings.php:712
+#: includes/admin/class-settings.php:303
+#: includes/admin/class-settings.php:782
 msgid "General"
 msgstr ""
 
-#: includes/admin/class-settings.php:296
+#: includes/admin/class-settings.php:304
 msgid "Display"
 msgstr ""
 
-#: includes/admin/class-settings.php:297
+#: includes/admin/class-settings.php:305
 msgid "Advanced"
 msgstr ""
 
-#: includes/admin/class-settings.php:332
+#: includes/admin/class-settings.php:340
 msgid "Warning Method"
 msgstr ""
 
-#: includes/admin/class-settings.php:333
+#: includes/admin/class-settings.php:341
 msgid "Choose how to warn users about external links. Modal and redirect warnings trigger on click; inline indicators appear next to the link."
 msgstr ""
 
-#: includes/admin/class-settings.php:337
+#: includes/admin/class-settings.php:345
 msgid "Inline indicators only"
 msgstr ""
 
-#: includes/admin/class-settings.php:338
+#: includes/admin/class-settings.php:346
 msgid "Modal dialog"
 msgstr ""
 
-#: includes/admin/class-settings.php:339
+#: includes/admin/class-settings.php:347
 msgid "Redirect screen"
 msgstr ""
 
-#: includes/admin/class-settings.php:340
+#: includes/admin/class-settings.php:348
 msgid "Inline indicators + Modal dialog"
 msgstr ""
 
-#: includes/admin/class-settings.php:341
+#: includes/admin/class-settings.php:349
 msgid "Inline indicators + Redirect screen"
 msgstr ""
 
-#: includes/admin/class-settings.php:346
+#: includes/admin/class-settings.php:354
 msgid "Inline Indicator Scope"
 msgstr ""
 
-#: includes/admin/class-settings.php:347
+#: includes/admin/class-settings.php:355
 msgid "Choose which links show inline indicators. Modal and redirect warnings always apply to external links only."
 msgstr ""
 
-#: includes/admin/class-settings.php:351
+#: includes/admin/class-settings.php:359
 msgid "External links only"
 msgstr ""
 
-#: includes/admin/class-settings.php:352
+#: includes/admin/class-settings.php:360
 msgid "External links and internal links opening in a new tab"
 msgstr ""
 
-#: includes/admin/class-settings.php:357
+#: includes/admin/class-settings.php:365
 msgid "Enabled Post Types"
 msgstr ""
 
-#: includes/admin/class-settings.php:358
+#: includes/admin/class-settings.php:366
 msgid "Select post types where link warnings should be enabled."
 msgstr ""
 
-#: includes/admin/class-settings.php:381
-msgid "Inline Indicators"
+#: includes/admin/class-settings.php:373
+msgid "External Content"
+msgstr ""
+
+#: includes/admin/class-settings.php:379
+msgid "Process Widget Output"
+msgstr ""
+
+#: includes/admin/class-settings.php:380
+msgid "Process links in block, text, and custom HTML widgets on the server."
+msgstr ""
+
+#: includes/admin/class-settings.php:386
+msgid "Process Navigation Menus"
 msgstr ""
 
 #: includes/admin/class-settings.php:387
-msgid "Visual Indicator"
-msgstr ""
-
-#: includes/admin/class-settings.php:388
-msgid "Choose what visual indicator to display."
-msgstr ""
-
-#: includes/admin/class-settings.php:392
-msgid "Icon (↗)"
+msgid "Process links in classic navigation menu output on the server."
 msgstr ""
 
 #: includes/admin/class-settings.php:393
-msgid "Text"
+msgid "Process Comments"
 msgstr ""
 
 #: includes/admin/class-settings.php:394
-msgid "Icon + text"
-msgstr ""
-
-#: includes/admin/class-settings.php:395
-msgid "None (screen reader only)"
+msgid "Process links in comment text on the server."
 msgstr ""
 
 #: includes/admin/class-settings.php:400
-msgid "Icon Style"
+msgid "Process Block Theme Template Parts"
 msgstr ""
 
 #: includes/admin/class-settings.php:401
-msgid "Choose which icon to display next to external links."
-msgstr ""
-
-#: includes/admin/class-settings.php:408
-msgid "Custom Icon"
-msgstr ""
-
-#: includes/admin/class-settings.php:409
-msgid "Enter your custom icon (only used when \"Custom\" is selected above). You can use Unicode symbols or emojis."
-msgstr ""
-
-#: includes/admin/class-settings.php:416
-msgid "Icon Color"
-msgstr ""
-
-#: includes/admin/class-settings.php:417
-msgid "Choose the color for the icon."
+msgid "Process links in rendered block-theme template parts on the server."
 msgstr ""
 
 #: includes/admin/class-settings.php:423
-msgid "Icon Background Color"
+msgid "Inline Indicators"
 msgstr ""
 
-#: includes/admin/class-settings.php:424
-msgid "Choose the background color for the icon. Leave empty for transparent."
+#: includes/admin/class-settings.php:429
+msgid "Visual Indicator"
 msgstr ""
 
 #: includes/admin/class-settings.php:430
-msgid "Indicator Text"
+msgid "Choose what visual indicator to display."
 msgstr ""
 
-#: includes/admin/class-settings.php:431
-msgid "Text displayed next to links (when text indicator is enabled)."
+#: includes/admin/class-settings.php:434
+msgid "Icon (↗)"
+msgstr ""
+
+#: includes/admin/class-settings.php:435
+msgid "Text"
+msgstr ""
+
+#: includes/admin/class-settings.php:436
+msgid "Icon + text"
 msgstr ""
 
 #: includes/admin/class-settings.php:437
-msgid "Screen Reader Text"
+msgid "None (screen reader only)"
 msgstr ""
 
-#: includes/admin/class-settings.php:438
-msgid "Hidden text for screen readers."
+#: includes/admin/class-settings.php:442
+msgid "Icon Style"
 msgstr ""
 
-#: includes/admin/class-settings.php:452
-msgid "Modal Title"
+#: includes/admin/class-settings.php:443
+msgid "Choose which icon to display next to external links."
 msgstr ""
 
-#: includes/admin/class-settings.php:453
-msgid "Title shown in the modal dialog."
+#: includes/admin/class-settings.php:450
+msgid "Custom Icon"
+msgstr ""
+
+#: includes/admin/class-settings.php:451
+msgid "Enter your custom icon (only used when \"Custom\" is selected above). You can use Unicode symbols or emojis."
+msgstr ""
+
+#: includes/admin/class-settings.php:458
+msgid "Icon Color"
 msgstr ""
 
 #: includes/admin/class-settings.php:459
-msgid "Modal Message"
+msgid "Choose the color for the icon."
 msgstr ""
 
-#: includes/admin/class-settings.php:460
-msgid "Message shown in the modal dialog."
+#: includes/admin/class-settings.php:465
+msgid "Icon Background Color"
 msgstr ""
 
 #: includes/admin/class-settings.php:466
-msgid "Continue Button Text"
+msgid "Choose the background color for the icon. Leave empty for transparent."
 msgstr ""
 
-#: includes/admin/class-settings.php:467
-msgid "Text for the continue button."
+#: includes/admin/class-settings.php:472
+msgid "Indicator Text"
 msgstr ""
 
 #: includes/admin/class-settings.php:473
-msgid "Cancel Button Text"
+msgid "Text displayed next to links (when text indicator is enabled)."
 msgstr ""
 
-#: includes/admin/class-settings.php:474
-msgid "Text for the cancel button."
+#: includes/admin/class-settings.php:475
+#: includes/class-content-processor.php:699
+#: includes/class-frontend-handler.php:127
+msgid "(opens in new window)"
+msgstr ""
+
+#: includes/admin/class-settings.php:479
+msgid "Screen Reader Text"
 msgstr ""
 
 #: includes/admin/class-settings.php:480
-msgid "Modal Frequency"
+msgid "Hidden text for screen readers."
 msgstr ""
 
-#: includes/admin/class-settings.php:481
-msgid "How often the modal is shown to the same visitor. Choosing anything other than \"Always\" adds a \"Don't show again\" checkbox to the modal, which is remembered in the visitor's browser."
+#: includes/admin/class-settings.php:482
+#: includes/class-content-processor.php:713
+#: includes/class-content-processor.php:725
+#: includes/class-frontend-handler.php:128
+msgid "Opens in a new window"
 msgstr ""
 
-#: includes/admin/class-settings.php:485
-msgid "Always show the modal"
+#: includes/admin/class-settings.php:494
+msgid "Modal Title"
 msgstr ""
 
-#: includes/admin/class-settings.php:486
-msgid "Once per browser session"
+#: includes/admin/class-settings.php:495
+msgid "Title shown in the modal dialog."
 msgstr ""
 
-#: includes/admin/class-settings.php:487
-msgid "Once every N days"
+#: includes/admin/class-settings.php:497
+#: includes/class-frontend-handler.php:129
+msgid "You are leaving this site"
 msgstr ""
 
-#: includes/admin/class-settings.php:492
-msgid "Remember Dismissal For"
-msgstr ""
-
-#: includes/admin/class-settings.php:493
-msgid "Number of days a dismissal is remembered. Only used when the frequency is set to \"Once every N days\"."
+#: includes/admin/class-settings.php:501
+msgid "Modal Message"
 msgstr ""
 
 #: includes/admin/class-settings.php:502
-msgid "Dismissal Scope"
+msgid "Message shown in the modal dialog."
 msgstr ""
 
-#: includes/admin/class-settings.php:503
-msgid "Whether a dismissal applies only to the destination domain the visitor dismissed, or to every external link on the site."
-msgstr ""
-
-#: includes/admin/class-settings.php:507
-msgid "Per destination domain"
+#: includes/admin/class-settings.php:504
+#: includes/class-frontend-handler.php:130
+msgid "You are about to visit an external website. Continue?"
 msgstr ""
 
 #: includes/admin/class-settings.php:508
-msgid "All external links"
+msgid "Download Modal Title"
 msgstr ""
 
-#: includes/admin/class-settings.php:513
-msgid "Don't Show Again Label"
+#: includes/admin/class-settings.php:509
+msgid "Title shown when a visitor follows a link to a configured downloadable file type."
 msgstr ""
 
-#: includes/admin/class-settings.php:514
-msgid "Label for the \"Don't show again\" checkbox in the modal."
+#: includes/admin/class-settings.php:511
+#: includes/class-frontend-handler.php:131
+msgid "You are about to download a file"
 msgstr ""
 
-#: includes/admin/class-settings.php:528
-msgid "Redirect Message"
+#: includes/admin/class-settings.php:515
+msgid "Download Modal Message"
+msgstr ""
+
+#: includes/admin/class-settings.php:516
+msgid "Message shown when a visitor follows a link to a configured downloadable file type."
+msgstr ""
+
+#: includes/admin/class-settings.php:518
+#: includes/class-frontend-handler.php:132
+msgid "This link will download a file. Continue?"
+msgstr ""
+
+#: includes/admin/class-settings.php:522
+msgid "Continue Button Text"
+msgstr ""
+
+#: includes/admin/class-settings.php:523
+msgid "Text for the continue button."
+msgstr ""
+
+#: includes/admin/class-settings.php:525
+#: includes/class-frontend-handler.php:133
+#: includes/class-frontend-handler.php:180
+msgid "Continue"
 msgstr ""
 
 #: includes/admin/class-settings.php:529
-msgid "Message shown on the redirect page."
+msgid "Cancel Button Text"
 msgstr ""
 
-#: includes/admin/class-settings.php:535
-msgid "Redirect Countdown"
+#: includes/admin/class-settings.php:530
+msgid "Text for the cancel button."
+msgstr ""
+
+#: includes/admin/class-settings.php:532
+#: includes/class-frontend-handler.php:134
+#: includes/class-frontend-handler.php:179
+msgid "Cancel"
 msgstr ""
 
 #: includes/admin/class-settings.php:536
+msgid "Modal Frequency"
+msgstr ""
+
+#: includes/admin/class-settings.php:537
+msgid "How often the modal is shown to the same visitor. Choosing anything other than \"Always\" adds a \"Don't show again\" checkbox to the modal, which is remembered in the visitor's browser."
+msgstr ""
+
+#: includes/admin/class-settings.php:541
+msgid "Always show the modal"
+msgstr ""
+
+#: includes/admin/class-settings.php:542
+msgid "Once per browser session"
+msgstr ""
+
+#: includes/admin/class-settings.php:543
+msgid "Once every N days"
+msgstr ""
+
+#: includes/admin/class-settings.php:548
+msgid "Remember Dismissal For"
+msgstr ""
+
+#: includes/admin/class-settings.php:549
+msgid "Number of days a dismissal is remembered. Only used when the frequency is set to \"Once every N days\"."
+msgstr ""
+
+#: includes/admin/class-settings.php:558
+msgid "Dismissal Scope"
+msgstr ""
+
+#: includes/admin/class-settings.php:559
+msgid "Whether a dismissal applies only to the destination domain the visitor dismissed, or to every external link on the site."
+msgstr ""
+
+#: includes/admin/class-settings.php:563
+msgid "Per destination domain"
+msgstr ""
+
+#: includes/admin/class-settings.php:564
+msgid "All external links"
+msgstr ""
+
+#: includes/admin/class-settings.php:569
+msgid "Don't Show Again Label"
+msgstr ""
+
+#: includes/admin/class-settings.php:570
+msgid "Label for the \"Don't show again\" checkbox in the modal."
+msgstr ""
+
+#: includes/admin/class-settings.php:572
+#: includes/class-frontend-handler.php:159
+msgid "Don't show this warning again"
+msgstr ""
+
+#: includes/admin/class-settings.php:584
+msgid "Redirect Message"
+msgstr ""
+
+#: includes/admin/class-settings.php:585
+msgid "Message shown on the redirect page."
+msgstr ""
+
+#: includes/admin/class-settings.php:587
+#: includes/class-redirect-handler.php:172
+msgid "You are being redirected to an external site."
+msgstr ""
+
+#: includes/admin/class-settings.php:591
+msgid "Redirect Countdown"
+msgstr ""
+
+#: includes/admin/class-settings.php:592
 msgid "Number of seconds before the automatic redirect takes place. Set to 0 to disable the timed redirect and require the user to click the Continue button on the redirect screen."
 msgstr ""
 
-#: includes/admin/class-settings.php:567
+#: includes/admin/class-settings.php:623
 msgid "Link Attributes"
 msgstr ""
 
-#: includes/admin/class-settings.php:573
+#: includes/admin/class-settings.php:629
 msgid "External Links"
 msgstr ""
 
-#: includes/admin/class-settings.php:574
+#: includes/admin/class-settings.php:630
 msgid "Attributes to add to external links. Existing rel values are preserved."
 msgstr ""
 
-#: includes/admin/class-settings.php:581
+#: includes/admin/class-settings.php:637
 msgid "Affiliate Links"
 msgstr ""
 
-#: includes/admin/class-settings.php:582
+#: includes/admin/class-settings.php:638
 msgid "Attributes to add to links marked with the Affiliate Link Class or inside an Affiliate Link Wrapper Class. Existing rel values are preserved."
 msgstr ""
 
-#: includes/admin/class-settings.php:589
+#: includes/admin/class-settings.php:645
 msgid "Affiliate Link Class"
 msgstr ""
 
-#: includes/admin/class-settings.php:590
+#: includes/admin/class-settings.php:646
 msgid "CSS class that marks a specific link as an affiliate link. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas."
 msgstr ""
 
-#: includes/admin/class-settings.php:597
+#: includes/admin/class-settings.php:653
 msgid "Affiliate Link Wrapper Class"
 msgstr ""
 
-#: includes/admin/class-settings.php:598
+#: includes/admin/class-settings.php:654
 msgid "CSS class that marks every link inside a wrapper element as an affiliate link. Separate multiple classes with commas."
 msgstr ""
 
-#: includes/admin/class-settings.php:605
+#: includes/admin/class-settings.php:661
+msgid "Download Links"
+msgstr ""
+
+#: includes/admin/class-settings.php:667
+msgid "Downloadable File Extensions"
+msgstr ""
+
+#: includes/admin/class-settings.php:668
+msgid "Comma-separated file extensions that should receive a download warning. Do not include the leading dot. For example: pdf, zip, docx."
+msgstr ""
+
+#: includes/admin/class-settings.php:675
 msgid "Exclusions and Classes"
 msgstr ""
 
-#: includes/admin/class-settings.php:611
+#: includes/admin/class-settings.php:681
 msgid "Excluded Domains"
 msgstr ""
 
-#: includes/admin/class-settings.php:612
+#: includes/admin/class-settings.php:682
 msgid "Enter one domain per line. These domains will be treated as internal (no warning shown). Plain entries (e.g. example.com) match that exact domain only. Use a wildcard entry (e.g. *.example.com) to also exclude subdomains. Add both to exclude everything under a domain."
 msgstr ""
 
-#: includes/admin/class-settings.php:618
+#: includes/admin/class-settings.php:688
 msgid "Suppress Icon Class"
 msgstr ""
 
-#: includes/admin/class-settings.php:619
+#: includes/admin/class-settings.php:689
 msgid "CSS class that suppresses the visual indicator on a specific link. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas."
 msgstr ""
 
-#: includes/admin/class-settings.php:626
+#: includes/admin/class-settings.php:696
 msgid "Suppress Icon Wrapper Class"
 msgstr ""
 
-#: includes/admin/class-settings.php:627
+#: includes/admin/class-settings.php:697
 msgid "CSS class that suppresses visual indicators on all links inside a wrapper element. Add this class to any containing element. Separate multiple classes with commas."
 msgstr ""
 
-#: includes/admin/class-settings.php:634
+#: includes/admin/class-settings.php:704
 msgid "Force External Class"
 msgstr ""
 
-#: includes/admin/class-settings.php:635
+#: includes/admin/class-settings.php:705
 msgid "CSS class that forces a specific link to be treated as external. Add this class directly to an &lt;a&gt; tag. Separate multiple classes with commas."
 msgstr ""
 
-#: includes/admin/class-settings.php:642
+#: includes/admin/class-settings.php:712
 msgid "Force External Wrapper Class"
 msgstr ""
 
-#: includes/admin/class-settings.php:643
+#: includes/admin/class-settings.php:713
 msgid "CSS class that forces all links inside a wrapper element to be treated as external. Add this class to any containing element. Separate multiple classes with commas."
 msgstr ""
 
-#: includes/admin/class-settings.php:661
+#: includes/admin/class-settings.php:731
 msgid "Add rel=\"nofollow\""
 msgstr ""
 
-#: includes/admin/class-settings.php:662
+#: includes/admin/class-settings.php:732
 msgid "Add rel=\"sponsored\""
 msgstr ""
 
-#: includes/admin/class-settings.php:663
+#: includes/admin/class-settings.php:733
 msgid "Add rel=\"ugc\""
 msgstr ""
 
-#: includes/admin/class-settings.php:664
+#: includes/admin/class-settings.php:734
 msgid "Open in a new tab (target=\"_blank\")"
 msgstr ""
 
-#: includes/admin/class-settings.php:665
+#: includes/admin/class-settings.php:735
 msgid "Add rel=\"noopener\" for new-tab links"
 msgstr ""
 
-#: includes/admin/class-settings.php:666
+#: includes/admin/class-settings.php:736
 msgid "Add rel=\"noreferrer\" for new-tab links. This also stops the referrer being sent, which can break referrer-based affiliate attribution."
 msgstr ""
 
-#: includes/admin/class-settings.php:694
+#: includes/admin/class-settings.php:764
 msgid "For more information:"
 msgstr ""
 
-#: includes/admin/class-settings.php:695
+#: includes/admin/class-settings.php:765
 msgid "Plugin Homepage"
 msgstr ""
 
-#: includes/admin/class-settings.php:714
+#: includes/admin/class-settings.php:784
 msgid "Configure the general behavior of the plugin."
 msgstr ""
 
-#: includes/admin/class-settings.php:715
+#: includes/admin/class-settings.php:785
 msgid "Choose your preferred warning method and which links should be processed."
 msgstr ""
 
 #. translators: 1: WebberZone Link Warnings link, 2: Plugin rating link
-#: includes/admin/class-settings.php:732
+#: includes/admin/class-settings.php:802
 #, php-format
 msgid "Thank you for using <a href=\"%1$s\" target=\"_blank\" rel=\"noopener noreferrer\">WebberZone Link Warnings</a>! Please <a href=\"%2$s\" target=\"_blank\" rel=\"noopener noreferrer\">rate us</a> on WordPress.org"
 msgstr ""
 
-#: includes/admin/class-settings.php:770
+#: includes/admin/class-settings.php:840
 msgid "Donate"
 msgstr ""
 
@@ -695,11 +761,11 @@ msgstr ""
 msgid "Follow us"
 msgstr ""
 
-#: includes/class-frontend-handler.php:143
+#: includes/class-frontend-handler.php:165
 msgid "Close dialog"
 msgstr ""
 
-#: includes/class-frontend-handler.php:149
+#: includes/class-frontend-handler.php:171
 msgid "External URL:"
 msgstr ""
 

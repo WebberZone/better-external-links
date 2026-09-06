@@ -95,7 +95,7 @@ class Frontend_Handler {
 				array_filter(
 					array_map(
 						static function ( $extension ) {
-							return ltrim( trim( $extension ), '.' );
+							return ltrim( trim( $extension, " \t\n\r\0\x0B" ), '.' );
 						},
 						$download_extensions
 					),

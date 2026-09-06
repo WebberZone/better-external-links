@@ -210,7 +210,7 @@ class Content_Processor {
 
 			// Add class for styling.
 			$existing_class = $processor->get_attribute( 'class' );
-			$new_class      = trim( $existing_class . ' wzlw-processed' );
+			$new_class      = trim( $existing_class . ' wzlw-processed', " \t\n\r\0\x0B" );
 			if ( $is_external ) {
 				$new_class .= ' wzlw-external';
 			}
@@ -359,7 +359,7 @@ class Content_Processor {
 			return false;
 		}
 
-		return in_array( 'wzlw-processed', preg_split( '/\s+/', trim( $class ) ), true );
+		return in_array( 'wzlw-processed', preg_split( '/\s+/', trim( $class, " \t\n\r\0\x0B" ) ), true );
 	}
 
 	/**
@@ -503,7 +503,7 @@ class Content_Processor {
 			return false;
 		}
 
-		$class_list = preg_split( '/\s+/', trim( $class_name ) );
+		$class_list = preg_split( '/\s+/', trim( $class_name, " \t\n\r\0\x0B" ) );
 
 		return is_array( $class_list ) && ! empty( array_intersect( $classes, $class_list ) );
 	}
@@ -570,7 +570,7 @@ class Content_Processor {
 		$no_icon_classes   = $this->parse_class_setting( 'no_icon_class', 'wzlw-no-icon' );
 		$has_no_icon_class = false;
 		if ( ! empty( $no_icon_classes ) && preg_match( '/class="([^"]*)"/', $link_html, $class_attr_match ) ) {
-			$link_classes      = preg_split( '/\s+/', trim( $class_attr_match[1] ) );
+			$link_classes      = preg_split( '/\s+/', trim( $class_attr_match[1], " \t\n\r\0\x0B" ) );
 			$has_no_icon_class = is_array( $link_classes ) && ! empty( array_intersect( $no_icon_classes, $link_classes ) );
 		}
 		if ( $has_no_icon_class ) {
@@ -636,7 +636,7 @@ class Content_Processor {
 
 		if ( ! empty( $rel_values ) ) {
 			$existing_rel = (string) $processor->get_attribute( 'rel' );
-			$existing_rel = preg_split( '/\s+/', trim( $existing_rel ) );
+			$existing_rel = preg_split( '/\s+/', trim( $existing_rel, " \t\n\r\0\x0B" ) );
 			if ( ! is_array( $existing_rel ) ) {
 				$existing_rel = array();
 			}
@@ -905,7 +905,7 @@ class Content_Processor {
 
 		$extensions = array_map(
 			static function ( $extension ) {
-				return ltrim( trim( $extension ), '.' );
+				return ltrim( trim( $extension, " \t\n\r\0\x0B" ), '.' );
 			},
 			$extensions
 		);
