@@ -251,7 +251,7 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 * New: Download warnings now cover links whose URL path ends in a configured file extension, including files hosted on the current site. The default extensions are `pdf, zip, doc, docx, xls, xlsx, exe, dmg`.
 * New: Added the **Download Links** section under Advanced with the **Downloadable File Extensions** setting, plus separate **Download Modal Title** and **Download Modal Message** settings under Modal Dialog.
 * New: Download links use a distinct download indicator icon when icons are enabled. Query strings and URL fragments are ignored when matching file extensions.
-* New: Server-side filters process widget output, navigation menus, comment text, and block-theme template parts. Each source can be enabled or disabled separately under General > External Content.
+* New: Server-side filters process widget output, navigation menus, comment text, and block-theme template parts. Each source can be enabled or disabled separately under General > External Content. All four are enabled after updating, so links in these areas start showing warnings straight away.
 * Fix: External links written without a scheme, such as `//example.com/page`, were treated as internal and received no warning.
 * Fix: Redirect screen destinations containing `&`, `#` or `+` failed the signature check and sent visitors to the home page.
 * Fix: Under the redirect methods, force-external links and internal `target="_blank"` links pointing at your own site also sent visitors to the home page instead of the warning screen.
@@ -364,7 +364,7 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 == Upgrade Notice ==
 
 = 1.6.0 =
-Adds warnings for configured downloadable file types and server-side processing for widget output, navigation menus, comments, and block-theme template parts. It also fixes external links written as `//example.com/page` getting no warning, redirect screens sending visitors to the home page instead of the destination, and wrappers containing an `<iframe>` or `<script>` suppressing every link after them. No action needed.
+Adds warnings for configured downloadable file types and server-side processing for widget output, navigation menus, comments, and block-theme template parts. It also fixes external links written as `//example.com/page` getting no warning, redirect screens sending visitors to the home page instead of the destination, and wrappers containing an `<iframe>` or `<script>` suppressing every link after them. All four content sources are enabled after updating — review them under General > External Content if you do not want warnings in those areas.
 
 = 1.5.1 =
 Fixes settings not saving correctly on multisite (values leaking between sites) and in the settings wizard (repeater rows silently dropped). No action needed.
