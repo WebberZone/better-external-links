@@ -41,7 +41,7 @@ class Frontend_Handler {
 	 */
 	public function enqueue_assets() {
 		$settings = wzlw_get_settings();
-		$method   = isset( $settings['warning_method'] ) ? $settings['warning_method'] : 'inline';
+		$method   = isset( $settings['warning_method'] ) ? $settings['warning_method'] : 'inline_modal';
 
 		$rtl_suffix = is_rtl() ? '-rtl' : '';
 		$min_suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
@@ -88,12 +88,31 @@ class Frontend_Handler {
 			)
 		);
 
+		$download_extensions_raw = $settings['download_extensions'] ?? 'pdf, zip, doc, docx, xls, xlsx, exe, dmg';
+		$download_extensions     = is_string( $download_extensions_raw ) ? preg_split( '/[\s,]+/', strtolower( $download_extensions_raw ), -1, PREG_SPLIT_NO_EMPTY ) : array();
+		$download_extensions     = is_array( $download_extensions ) ? array_values(
+			array_unique(
+				array_filter(
+					array_map(
+						static function ( $extension ) {
+							return ltrim( trim( $extension, " \t\n\r\0\x0B" ), '.' );
+						},
+						$download_extensions
+					),
+					static function ( $extension ) {
+						return (bool) preg_match( '/^[a-z0-9]+$/', $extension );
+					}
+				)
+			)
+		) : array();
+
 		wp_localize_script(
 			'wzlw-modal',
 			'wzlwSettings',
 			array(
 				'siteHost'                  => $site_host,
 				'excludedDomains'           => $excluded_domains_js,
+				'downloadExtensions'        => $download_extensions,
 				'scope'                     => $settings['scope'] ?? 'external',
 				'warningMethod'             => $method,
 				'noIconClass'               => array_values( array_filter( array_map( 'trim', explode( ',', isset( $settings['no_icon_class'] ) ? $settings['no_icon_class'] : 'wzlw-no-icon' ) ) ) ),
@@ -109,11 +128,14 @@ class Frontend_Handler {
 				'screenReaderText'          => $settings['screen_reader_text'] ?? __( 'Opens in a new window', 'webberzone-link-warnings' ),
 				'modalTitle'                => $settings['modal_title'] ?? __( 'You are leaving this site', 'webberzone-link-warnings' ),
 				'modalMessage'              => $settings['modal_message'] ?? __( 'You are about to visit an external website. Continue?', 'webberzone-link-warnings' ),
+				'downloadModalTitle'        => $settings['download_modal_title'] ?? __( 'You are about to download a file', 'webberzone-link-warnings' ),
+				'downloadModalMessage'      => $settings['download_modal_message'] ?? __( 'This link will download a file. Continue?', 'webberzone-link-warnings' ),
 				'continueText'              => $settings['modal_continue_text'] ?? __( 'Continue', 'webberzone-link-warnings' ),
 				'cancelText'                => $settings['modal_cancel_text'] ?? __( 'Cancel', 'webberzone-link-warnings' ),
 				'modalFrequency'            => $settings['modal_frequency'] ?? 'always',
 				'modalFrequencyDays'        => max( 1, (int) ( $settings['modal_frequency_days'] ?? 30 ) ),
 				'modalFrequencyScope'       => $settings['modal_frequency_scope'] ?? 'domain',
+				'redirectBaseUrl'           => home_url( 'external-redirect/' ),
 				'ajaxUrl'                   => admin_url( 'admin-ajax.php' ),
 				'nonce'                     => wp_create_nonce( 'wzlw_sign_urls' ),
 			)
@@ -127,7 +149,7 @@ class Frontend_Handler {
 	 */
 	public function render_modal() {
 		$settings = wzlw_get_settings();
-		$method   = isset( $settings['warning_method'] ) ? $settings['warning_method'] : 'inline';
+		$method   = isset( $settings['warning_method'] ) ? $settings['warning_method'] : 'inline_modal';
 
 		if ( ! in_array( $method, array( 'modal', 'inline_modal' ), true ) ) {
 			return;
@@ -175,10 +197,12 @@ class Frontend_Handler {
 		$icon_color  = $settings['icon_color'] ?? '#595959';
 		$icon_bg     = $settings['icon_background'] ?? '';
 
-		$icon = \WebberZone\Link_Warnings\Util\Icon_Helper::get_icon( $icon_style, $custom_icon );
+		$icon          = \WebberZone\Link_Warnings\Util\Icon_Helper::get_icon( $icon_style, $custom_icon );
+		$download_icon = \WebberZone\Link_Warnings\Util\Icon_Helper::get_download_icon();
 
 		// Escape for CSS content property.
-		$icon_escaped = addcslashes( $icon, '"\\' );
+		$icon_escaped          = addcslashes( $icon, '"\\' );
+		$download_icon_escaped = addcslashes( $download_icon, '"\\' );
 
 		// Build inline CSS with variables.
 		// Sanitize colors and only add if valid.
@@ -188,6 +212,7 @@ class Frontend_Handler {
 		// Build inline CSS with variables.
 		$inline_css  = ':root {';
 		$inline_css .= ' --wzlw-icon-content: "' . $icon_escaped . '";';
+		$inline_css .= ' --wzlw-download-icon-content: "' . $download_icon_escaped . '";';
 
 		if ( $sanitized_icon_color ) {
 			$inline_css .= ' --wzlw-icon-color: ' . $sanitized_icon_color . ';';

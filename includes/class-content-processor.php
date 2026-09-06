@@ -51,22 +51,30 @@ class Content_Processor {
 
 		Hook_Registry::add_filter( 'the_content', array( $this, 'process_content' ), 999 );
 		Hook_Registry::add_filter( 'the_excerpt', array( $this, 'process_content' ), 999 );
+		Hook_Registry::add_filter( 'widget_block_content', array( $this, 'process_widget_content' ), 999, 3 );
+		Hook_Registry::add_filter( 'widget_text', array( $this, 'process_widget_text' ), 999, 3 );
+		Hook_Registry::add_filter( 'widget_text_content', array( $this, 'process_widget_content' ), 999, 3 );
+		Hook_Registry::add_filter( 'widget_custom_html_content', array( $this, 'process_widget_content' ), 999, 3 );
+		Hook_Registry::add_filter( 'wp_nav_menu', array( $this, 'process_nav_menu' ), 999, 2 );
+		Hook_Registry::add_filter( 'comment_text', array( $this, 'process_comment_text' ), 999, 3 );
+		Hook_Registry::add_filter( 'render_block', array( $this, 'process_template_part' ), 999, 2 );
 	}
 
 	/**
 	 * Process content to add accessibility features.
 	 *
 	 * @since 1.0.0
-	 * @param string $content Post content.
+	 * @param string $content                 Content to process.
+	 * @param bool   $external_content       Whether to bypass the enabled post type check.
 	 * @return string Modified content.
 	 */
-	public function process_content( $content ) {
+	public function process_content( $content, $external_content = false ) {
 		if ( empty( $content ) ) {
 			return $content;
 		}
 
 		// Check if current post type is enabled.
-		if ( ! $this->is_post_type_enabled() ) {
+		if ( ! $external_content && ! $this->is_post_type_enabled() ) {
 			return $content;
 		}
 
@@ -87,7 +95,7 @@ class Content_Processor {
 					$skip_depth = 0;
 				}
 			} elseif ( $this->is_skip_wrapper_tag( $processor ) ) {
-				if ( ! $this->tag_is_void( $processor->get_tag() ) ) {
+				if ( 1 === $this->get_skip_depth_delta( $processor ) ) {
 					$skip_depth = 1;
 				}
 			}
@@ -99,7 +107,7 @@ class Content_Processor {
 					$force_external_depth = 0;
 				}
 			} elseif ( $this->is_force_external_wrapper_tag( $processor ) ) {
-				if ( ! $this->tag_is_void( $processor->get_tag() ) ) {
+				if ( 1 === $this->get_skip_depth_delta( $processor ) ) {
 					$force_external_depth = 1;
 				}
 			}
@@ -111,7 +119,7 @@ class Content_Processor {
 					$affiliate_depth = 0;
 				}
 			} elseif ( $this->is_affiliate_wrapper_tag( $processor ) ) {
-				if ( ! $this->tag_is_void( $processor->get_tag() ) ) {
+				if ( 1 === $this->get_skip_depth_delta( $processor ) ) {
 					$affiliate_depth = 1;
 				}
 			}
@@ -134,10 +142,22 @@ class Content_Processor {
 
 			// Determine if link should be processed.
 			$is_affiliate = $affiliate_depth > 0 || $this->link_has_affiliate_class( $processor );
-			$is_external  = $is_affiliate || $force_external_depth > 0 || $this->link_has_force_external_class( $processor ) || $this->is_external_link( $href );
+			$is_forced    = $is_affiliate || $force_external_depth > 0 || $this->link_has_force_external_class( $processor );
+			$is_excluded  = ! $is_forced && $this->is_excluded_domain( $href );
+			$is_external  = $is_forced || ( ! $is_excluded && $this->is_external_link( $href ) );
+			$is_download  = ! $is_excluded && $this->is_download_link( $href );
+
+			if ( $is_excluded ) {
+				$processor->set_attribute( 'data-wzlw-excluded', 'true' );
+				foreach ( array( 'data-wzlw-url', 'data-wzlw-external', 'data-wzlw-blank', 'data-wzlw-download', 'data-wzlw-redirect-url' ) as $attribute ) {
+					$processor->remove_attribute( $attribute );
+				}
+			} else {
+				$processor->remove_attribute( 'data-wzlw-excluded' );
+			}
 			$this->apply_link_attributes( $processor, $is_external, $is_affiliate );
 			$has_target     = '_blank' === $processor->get_attribute( 'target' );
-			$should_process = $this->should_process_link( $is_external, $has_target );
+			$should_process = $this->should_process_link( $is_external, $has_target, $is_download );
 
 			// Inside a skip wrapper, target="_blank" links still need ARIA for accessibility
 			// even when the visual icon/modal is suppressed.
@@ -152,7 +172,7 @@ class Content_Processor {
 			}
 
 			// Excluded-domain links with target=_blank (scope=both): ARIA only, no icon, no modal.
-			if ( ! $is_external && $has_target && $this->is_excluded_domain( $href ) ) {
+			if ( $is_excluded && $has_target ) {
 				$aria_label = $this->get_aria_label( $processor->get_attribute( 'aria-label' ) );
 				if ( $aria_label ) {
 					$processor->set_attribute( 'aria-label', $aria_label );
@@ -166,8 +186,11 @@ class Content_Processor {
 				$processor->set_attribute( 'data-wzlw-url', $href );
 				if ( $is_external ) {
 					$processor->set_attribute( 'data-wzlw-external', 'true' );
-				} else {
+				} elseif ( $has_target ) {
 					$processor->set_attribute( 'data-wzlw-blank', 'true' );
+				}
+				if ( $is_download ) {
+					$processor->set_attribute( 'data-wzlw-download', 'true' );
 				}
 				if ( in_array( $warning_method, array( 'redirect', 'inline_redirect' ), true ) ) {
 					$processor->set_attribute( 'data-wzlw-redirect-url', Redirect_Handler::get_redirect_url( $href ) );
@@ -181,18 +204,17 @@ class Content_Processor {
 			}
 
 			// Add class for styling.
-			$existing_class = $processor->get_attribute( 'class' );
-			$new_class      = trim( $existing_class . ' wzlw-processed' );
+			$new_classes = array( 'wzlw-processed' );
 			if ( $is_external ) {
-				$new_class .= ' wzlw-external';
+				$new_classes[] = 'wzlw-external';
+			}
+			if ( $is_download ) {
+				$new_classes[] = 'wzlw-download';
 			}
 			if ( $skip_depth > 0 ) {
-				$no_icon_classes = $this->parse_class_setting( 'no_icon_class', 'wzlw-no-icon' );
-				if ( ! empty( $no_icon_classes ) ) {
-					$new_class .= ' ' . implode( ' ', $no_icon_classes );
-				}
+				$new_classes = array_merge( $new_classes, $this->parse_class_setting( 'no_icon_class', 'wzlw-no-icon' ) );
 			}
-			$processor->set_attribute( 'class', $new_class );
+			$processor->set_attribute( 'class', $this->merge_classes( $processor->get_attribute( 'class' ), $new_classes ) );
 		}
 
 		$processed_content = $processor->get_updated_html();
@@ -203,6 +225,108 @@ class Content_Processor {
 		}
 
 		return $processed_content;
+	}
+
+	/**
+	 * Process block, text, and custom HTML widget output.
+	 *
+	 * @since 1.6.0
+	 * @param string $content Widget content.
+	 * @return string Modified content.
+	 */
+	public function process_widget_content( $content ) {
+		return $this->process_external_content( $content, 'process_widgets' );
+	}
+
+	/**
+	 * Process legacy Text widget output without processing it twice for visual or Custom HTML widgets.
+	 *
+	 * @since 1.6.0
+	 * @param string $content  Widget content.
+	 * @param array  $instance Widget instance settings.
+	 * @param object $widget   Widget instance.
+	 * @return string Modified content.
+	 */
+	public function process_widget_text( $content, $instance = array(), $widget = null ) {
+		$is_visual = ! empty( $instance['visual'] ) && ! empty( $instance['filter'] );
+		$is_visual = $is_visual || ( isset( $instance['filter'] ) && 'content' === $instance['filter'] );
+		$is_custom = is_object( $widget ) && isset( $widget->id_base ) && 'custom_html' === $widget->id_base;
+
+		if ( $is_visual || $is_custom ) {
+			return $content;
+		}
+
+		return $this->process_external_content( $content, 'process_widgets' );
+	}
+
+	/**
+	 * Process navigation menu output.
+	 *
+	 * @since 1.6.0
+	 * @param string $nav_menu Navigation menu HTML.
+	 * @return string Modified menu HTML.
+	 */
+	public function process_nav_menu( $nav_menu ) {
+		return $this->process_external_content( $nav_menu, 'process_nav_menus' );
+	}
+
+	/**
+	 * Process comment output.
+	 *
+	 * @since 1.6.0
+	 * @param string $comment_text Comment HTML.
+	 * @return string Modified comment HTML.
+	 */
+	public function process_comment_text( $comment_text ) {
+		return $this->process_external_content( $comment_text, 'process_comments' );
+	}
+
+	/**
+	 * Process block-theme template part output.
+	 *
+	 * Only the complete template-part block is processed. Handling every `render_block`
+	 * invocation would duplicate the post-content filter for ordinary post blocks.
+	 *
+	 * @since 1.6.0
+	 * @param string $block_content Rendered block HTML.
+	 * @param array  $block         Parsed block data.
+	 * @return string Modified block HTML.
+	 */
+	public function process_template_part( $block_content, $block = array() ) {
+		if ( 'core/template-part' !== ( $block['blockName'] ?? '' ) ) {
+			return $block_content;
+		}
+
+		return $this->process_external_content( $block_content, 'process_template_parts' );
+	}
+
+	/**
+	 * Process content from a non-post-content WordPress hook when enabled.
+	 *
+	 * @since 1.6.0
+	 * @param mixed  $content    Content to process.
+	 * @param string $setting_id Setting controlling this content source.
+	 * @return mixed Processed content or the original value.
+	 */
+	private function process_external_content( $content, $setting_id ) {
+		if ( ! is_string( $content ) || '' === $content || ! $this->is_frontend_request() || ! wzlw_get_option( $setting_id, true ) ) {
+			return $content;
+		}
+
+		return $this->process_content( $content, true );
+	}
+
+	/**
+	 * Check whether the current request renders the site frontend.
+	 *
+	 * Core also runs `comment_text` and `render_block` in wp-admin and in REST responses,
+	 * which `is_post_type_enabled()` keeps the post content filters out of.
+	 *
+	 * @since 1.6.0
+	 * @return bool True when the request is a frontend page load.
+	 */
+	private function is_frontend_request() {
+		return ! is_admin() && ! wp_is_serving_rest_request();
 	}
 
 	/**
@@ -366,7 +490,7 @@ class Content_Processor {
 			return false;
 		}
 
-		$class_list = preg_split( '/\s+/', trim( $class_name ) );
+		$class_list = preg_split( '/\s+/', trim( $class_name, " \t\n\r\0\x0B" ) );
 
 		return is_array( $class_list ) && ! empty( array_intersect( $classes, $class_list ) );
 	}
@@ -383,7 +507,7 @@ class Content_Processor {
 			return -1;
 		}
 
-		if ( $this->tag_is_void( $processor->get_tag() ) ) {
+		if ( $this->tag_is_void( $processor->get_tag() ) || in_array( $processor->get_tag(), array( 'SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE', 'IFRAME', 'NOEMBED', 'NOFRAMES', 'XMP' ), true ) ) {
 			return 0;
 		}
 
@@ -419,29 +543,39 @@ class Content_Processor {
 	private function add_indicator_to_link( $matches ) {
 		$link_html = $matches[0];
 
+		// The same HTML can pass through more than one supported content filter.
+		$has_indicator = preg_match( '/\bclass=["\'][^"\']*\b(?:wzlw-icon|wzlw-text)\b[^"\']*["\']/i', $link_html );
+		if ( ! $has_indicator && 'none' === ( $this->settings['visual_indicator'] ?? 'icon' ) ) {
+			$has_indicator = preg_match( '/<span\b[^>]*class=["\'][^"\']*\bscreen-reader-text\b[^"\']*["\'][^>]*>/i', $link_html );
+		}
+		if ( $has_indicator ) {
+			return $link_html;
+		}
+
 		// Check if link has the no-icon class — suppress visual indicator but
 		// still add screen reader text for target="_blank" links.
 		$no_icon_classes   = $this->parse_class_setting( 'no_icon_class', 'wzlw-no-icon' );
 		$has_no_icon_class = false;
 		if ( ! empty( $no_icon_classes ) && preg_match( '/class="([^"]*)"/', $link_html, $class_attr_match ) ) {
-			$link_classes      = preg_split( '/\s+/', trim( $class_attr_match[1] ) );
+			$link_classes      = preg_split( '/\s+/', trim( $class_attr_match[1], " \t\n\r\0\x0B" ) );
 			$has_no_icon_class = is_array( $link_classes ) && ! empty( array_intersect( $no_icon_classes, $link_classes ) );
 		}
 		if ( $has_no_icon_class ) {
-			if ( strpos( $link_html, 'target="_blank"' ) !== false ) {
-				$link_html = str_replace( '</a>', $this->get_screen_reader_text() . '</a>', $link_html );
+			if ( preg_match( '/\btarget\s*=\s*(?:"_blank"|\'_blank\'|_blank)/i', $link_html ) ) {
+				$link_html = str_ireplace( '</a>', $this->get_screen_reader_text() . '</a>', $link_html );
 			}
 			return $link_html;
 		}
 
-		$indicator = $this->get_visual_indicator();
+		$is_download = (bool) preg_match( '/\bclass=["\'][^"\']*\bwzlw-download\b[^"\']*["\']/i', $link_html );
+		$indicator   = $this->get_visual_indicator( $is_download );
 
 		if ( empty( $indicator ) ) {
 			return $link_html;
 		}
 
 		// Insert indicator before closing </a> tag.
-		$link_html = str_replace( '</a>', $indicator . '</a>', $link_html );
+		$link_html = str_ireplace( '</a>', $indicator . '</a>', $link_html );
 
 		return $link_html;
 	}
@@ -489,7 +623,7 @@ class Content_Processor {
 
 		if ( ! empty( $rel_values ) ) {
 			$existing_rel = (string) $processor->get_attribute( 'rel' );
-			$existing_rel = preg_split( '/\s+/', trim( $existing_rel ) );
+			$existing_rel = preg_split( '/\s+/', trim( $existing_rel, " \t\n\r\0\x0B" ) );
 			if ( ! is_array( $existing_rel ) ) {
 				$existing_rel = array();
 			}
@@ -526,9 +660,10 @@ class Content_Processor {
 	 * Get visual indicator HTML.
 	 *
 	 * @since 1.0.0
+	 * @param bool $is_download Whether the link points to a configured download extension.
 	 * @return string Indicator HTML.
 	 */
-	private function get_visual_indicator() {
+	private function get_visual_indicator( $is_download = false ) {
 		$visual = $this->settings['visual_indicator'] ?? 'icon';
 
 		if ( 'none' === $visual ) {
@@ -543,7 +678,8 @@ class Content_Processor {
 		// Add visual elements.
 		if ( 'icon' === $visual || 'both' === $visual ) {
 			// Icon is added via CSS ::before pseudo-element using CSS variable.
-			$indicator .= '<span class="wzlw-icon" aria-hidden="true"></span>';
+			$icon_class = $is_download ? 'wzlw-icon wzlw-download-icon' : 'wzlw-icon';
+			$indicator .= '<span class="' . $icon_class . '" aria-hidden="true"></span>';
 		}
 
 		if ( 'text' === $visual || 'both' === $visual ) {
@@ -576,10 +712,34 @@ class Content_Processor {
 		$screen_reader_text = $this->settings['screen_reader_text'] ?? __( 'Opens in a new window', 'webberzone-link-warnings' );
 
 		if ( $existing_label ) {
+			// The same markup can reach this more than once via nested content filters.
+			if ( '' !== $screen_reader_text && substr( $existing_label, -strlen( $screen_reader_text ) ) === $screen_reader_text ) {
+				return $existing_label;
+			}
+
 			return $existing_label . ', ' . $screen_reader_text;
 		}
 
 		return null; // Let the screen reader text span handle it.
+	}
+
+	/**
+	 * Merge class names into an existing class attribute without duplicating them.
+	 *
+	 * @since 1.6.0
+	 * @param string|null $existing_class Existing class attribute value.
+	 * @param string[]    $new_classes    Class names to add.
+	 * @return string Merged class attribute value.
+	 */
+	private function merge_classes( $existing_class, array $new_classes ) {
+		$classes = array();
+
+		if ( is_string( $existing_class ) && '' !== trim( $existing_class, " \t\n\r\0\x0B" ) ) {
+			$classes = preg_split( '/\s+/', trim( $existing_class, " \t\n\r\0\x0B" ) );
+			$classes = is_array( $classes ) ? $classes : array();
+		}
+
+		return implode( ' ', array_unique( array_merge( $classes, $new_classes ) ) );
 	}
 
 	/**
@@ -591,7 +751,7 @@ class Content_Processor {
 	 */
 	private function is_external_link( $url ) {
 		// Handle relative URLs.
-		if ( 0 === strpos( $url, '/' ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, '?' ) ) {
+		if ( ( 0 === strpos( $url, '/' ) && 0 !== strpos( $url, '//' ) ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, '?' ) ) {
 			return false;
 		}
 
@@ -608,6 +768,32 @@ class Content_Processor {
 		if ( $link_host === $this->site_host ) {
 			return false;
 		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a URL's host matches the excluded domains list.
+	 *
+	 * Unlike is_external_link(), this does not check the site host — it only
+	 * tests whether the domain is explicitly excluded. Used to detect
+	 * excluded-domain target=_blank links under scope=both.
+	 *
+	 * @since 1.5.0
+	 * @param string $url URL to check.
+	 * @return bool True if the host matches an excluded domain entry.
+	 */
+	private function is_excluded_domain( string $url ): bool {
+		if ( ( 0 === strpos( $url, '/' ) && 0 !== strpos( $url, '//' ) ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, '?' ) ) {
+			return false;
+		}
+
+		$parsed_url = wp_parse_url( $url );
+		if ( ! isset( $parsed_url['host'] ) ) {
+			return false;
+		}
+
+		$link_host = strtolower( rtrim( $parsed_url['host'], '.' ) );
 
 		// Check excluded domains.
 		$excluded_domains = $this->settings['excluded_domains'] ?? '';
@@ -646,61 +832,6 @@ class Content_Processor {
 				// *.example.com — matches subdomains only, not the base domain itself.
 				$base = substr( $domain, 2 );
 				if ( $base && substr( $link_host, -( strlen( $base ) + 1 ) ) === '.' . $base ) {
-					return false;
-				}
-			} elseif ( $link_host === $domain ) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Check if a URL's host matches the excluded domains list.
-	 *
-	 * Unlike is_external_link(), this does not check the site host — it only
-	 * tests whether the domain is explicitly excluded. Used to detect
-	 * excluded-domain target=_blank links under scope=both.
-	 *
-	 * @since 1.5.0
-	 * @param string $url URL to check.
-	 * @return bool True if the host matches an excluded domain entry.
-	 */
-	private function is_excluded_domain( string $url ): bool {
-		if ( 0 === strpos( $url, '/' ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, '?' ) ) {
-			return false;
-		}
-
-		$parsed_url = wp_parse_url( $url );
-		if ( ! isset( $parsed_url['host'] ) ) {
-			return false;
-		}
-
-		$link_host = strtolower( rtrim( $parsed_url['host'], '.' ) );
-
-		$excluded_domains = $this->settings['excluded_domains'] ?? '';
-		if ( is_string( $excluded_domains ) ) {
-			$excluded_domains = array_filter( array_map( 'trim', explode( "\n", $excluded_domains ) ) );
-		}
-
-		$excluded_domains = array_filter(
-			array_map(
-				function ( $domain ) {
-					$parsed = wp_parse_url( $domain );
-					if ( ! empty( $parsed['host'] ) ) {
-						return strtolower( $parsed['host'] );
-					}
-					return strtolower( strtok( rtrim( $domain, '/' ), '/' ) );
-				},
-				$excluded_domains
-			)
-		);
-
-		foreach ( $excluded_domains as $domain ) {
-			if ( 0 === strpos( $domain, '*.' ) ) {
-				$base = substr( $domain, 2 );
-				if ( $base && substr( $link_host, -( strlen( $base ) + 1 ) ) === '.' . $base ) {
 					return true;
 				}
 			} elseif ( $link_host === $domain ) {
@@ -717,21 +848,89 @@ class Content_Processor {
 	 * @since 1.0.0
 	 * @param bool $is_external Whether link is external.
 	 * @param bool $has_target  Whether link has target="_blank".
+	 * @param bool $is_download Whether link points to a configured download extension.
 	 * @return bool True if should be processed.
 	 */
-	private function should_process_link( $is_external, $has_target ) {
+	private function should_process_link( $is_external, $has_target, $is_download = false ) {
 		$scope = isset( $this->settings['scope'] ) ? $this->settings['scope'] : 'external';
 
 		switch ( $scope ) {
 			case 'external':
-				return $is_external;
+				return $is_external || $is_download;
 
 			case 'both':
-				return $is_external || $has_target;
+				return $is_external || $is_download || $has_target;
 
 			default:
 				return $is_external;
 		}
+	}
+
+	/**
+	 * Check if a URL points to a configured downloadable file type.
+	 *
+	 * @since 1.6.0
+	 * @param string $url URL to check.
+	 * @return bool True if the URL ends with a configured file extension.
+	 */
+	private function is_download_link( string $url ): bool {
+		$parsed_url = wp_parse_url( $url );
+
+		if ( ! is_array( $parsed_url ) || empty( $parsed_url['path'] ) ) {
+			return false;
+		}
+
+		if ( ! empty( $parsed_url['scheme'] ) && ! in_array( strtolower( $parsed_url['scheme'] ), array( 'http', 'https' ), true ) ) {
+			return false;
+		}
+
+		if ( ! empty( $parsed_url['scheme'] ) && empty( $parsed_url['host'] ) ) {
+			return false;
+		}
+
+		$path = rtrim( rawurldecode( (string) $parsed_url['path'] ), '/' );
+		if ( ! preg_match( '/\.([a-z0-9]+)$/i', $path, $matches ) ) {
+			return false;
+		}
+
+		return in_array( strtolower( $matches[1] ), $this->get_download_extensions(), true );
+	}
+
+	/**
+	 * Get configured downloadable file extensions.
+	 *
+	 * @since 1.6.0
+	 * @return string[] Normalized file extensions.
+	 */
+	private function get_download_extensions(): array {
+		$raw = isset( $this->settings['download_extensions'] ) ? $this->settings['download_extensions'] : 'pdf, zip, doc, docx, xls, xlsx, exe, dmg';
+
+		if ( ! is_string( $raw ) ) {
+			return array();
+		}
+
+		$extensions = preg_split( '/[\s,]+/', strtolower( $raw ), -1, PREG_SPLIT_NO_EMPTY );
+		if ( ! is_array( $extensions ) ) {
+			return array();
+		}
+
+		$extensions = array_map(
+			static function ( $extension ) {
+				return ltrim( trim( $extension, " \t\n\r\0\x0B" ), '.' );
+			},
+			$extensions
+		);
+
+		return array_values(
+			array_unique(
+				array_filter(
+					$extensions,
+					static function ( $extension ) {
+						return (bool) preg_match( '/^[a-z0-9]+$/', $extension );
+					}
+				)
+			)
+		);
 	}
 
 	/**

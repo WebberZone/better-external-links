@@ -65,6 +65,7 @@ class Icon_Helper {
 			'link_emoji'  => '🔗',
 			'globe_emoji' => '🌐',
 			'asterisk'    => '*',
+			'download'    => '⇩',
 		);
 
 		/**
@@ -96,5 +97,15 @@ class Icon_Helper {
 
 		// Return preset icon or default.
 		return $icon_map[ $icon_style ] ?? '↗';
+	}
+
+	/**
+	 * Get the icon used for downloadable file links.
+	 *
+	 * @since 1.6.0
+	 * @return string Download icon text.
+	 */
+	public static function get_download_icon() {
+		return self::get_icon( 'download' );
 	}
 }

@@ -1,6 +1,6 @@
 {
   "name": "@webberzone/webberzone-link-warnings",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Enhances accessibility by warning users when links open in new windows or navigate to external sites.",
   "author": "WebberZone",
   "license": "GPL-2.0-or-later",

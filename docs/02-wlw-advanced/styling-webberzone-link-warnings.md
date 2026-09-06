@@ -23,6 +23,7 @@ The plugin adds the following classes to processed `<a>` tags:
 | --- | --- |
 | `wzlw-processed` | Always added to every link the plugin processes. |
 | `wzlw-external` | Added when the link is classified as external. |
+| `wzlw-download` | Added when the link URL path ends in a configured downloadable file extension. |
 
 These classes are useful for writing targeted CSS rules.
 
@@ -39,6 +40,22 @@ The icon is rendered via a CSS `::before` pseudo-element using a CSS variable. T
 ```
 
 The displayed character is controlled by the `--wzlw-icon-content` CSS variable, which the plugin sets as an inline style based on the Icon Style setting.
+
+### Download icon indicator
+
+Configured download links receive the `wzlw-download` class. When the visual indicator includes an icon, the plugin adds the `wzlw-download-icon` class alongside `wzlw-icon`:
+
+```html
+<span class="wzlw-icon wzlw-download-icon" aria-hidden="true"></span>
+```
+
+The download icon uses the `--wzlw-download-icon-content` CSS variable. The default value is `⇩`. Override the variable in your theme stylesheet if you want a different character:
+
+```css
+:root {
+    --wzlw-download-icon-content: "↓";
+}
+```
 
 ### Text indicator
 

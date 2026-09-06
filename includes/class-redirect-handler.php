@@ -105,7 +105,7 @@ class Redirect_Handler {
 	/**
 	 * Validate URL.
 	 *
-	 * Accepts root-relative paths (same-site) and absolute URLs pointing at a different host.
+	 * Accepts root-relative paths, network-path references and absolute URLs. Authorisation is the HMAC, not the host.
 	 *
 	 * @since 1.0.0
 	 * @param string $url URL to validate.
@@ -123,16 +123,19 @@ class Redirect_Handler {
 			return true;
 		}
 
-		// Basic validation.
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		// Network-path references ("//example.com/page") have a host but no scheme, so FILTER_VALIDATE_URL rejects them.
+		if ( is_array( $parsed_url ) && ! empty( $parsed_url['host'] ) && empty( $parsed_url['scheme'] ) ) {
+			return true;
+		}
+
+		// FILTER_VALIDATE_URL accepts scheme:path forms such as "mailto:", which the browser must never be handed here.
+		if ( ! in_array( strtolower( (string) ( $parsed_url['scheme'] ?? '' ) ), array( 'http', 'https' ), true ) ) {
 			return false;
 		}
 
-		// Must be external.
-		$site_host = strtolower( rtrim( (string) wp_parse_url( home_url(), PHP_URL_HOST ), '.' ) );
-		$url_host  = strtolower( rtrim( (string) ( $parsed_url['host'] ?? '' ), '.' ) );
-
-		return $url_host !== $site_host;
+		// Same-site destinations are legitimate here: force-external and internal target="_blank"
+		// links are signed too. The HMAC, not the host, is what prevents open-redirect abuse.
+		return (bool) filter_var( $url, FILTER_VALIDATE_URL );
 	}
 
 	/**
@@ -259,9 +262,11 @@ class Redirect_Handler {
 	 * @return string Redirect URL.
 	 */
 	public static function get_redirect_url( $destination ) {
+		$destination = esc_url_raw( $destination );
+
 		return add_query_arg(
 			array(
-				'url'      => $destination,
+				'url'      => rawurlencode( $destination ),
 				'wzlw_sig' => hash_hmac( 'sha256', $destination, wp_salt( 'auth' ) ),
 			),
 			home_url( 'external-redirect/' )

@@ -8,7 +8,7 @@
 
 __Requires at least:__ 6.6
 
-__Tested up to:__ 7.0
+__Tested up to:__ 7.1
 
 __Requires PHP:__ 7.4
 
@@ -22,7 +22,7 @@ Add accessible warnings for external links and `target="_blank"` links in WordPr
 
 WebberZone Link Warnings helps you warn users when links open in a new window or take them to external websites. It adds accessible indicators, confirmation dialogs, or redirect screens — helping you align with accessibility best practices without rewriting your content.
 
-WebberZone Link Warnings uses a two-layer approach to process links across your entire site. For post content, it uses WordPress's native `WP_HTML_Tag_Processor` class to efficiently parse and modify links at render time. For everything else — navigation menus, footers, sidebars, widgets, and theme output — a lightweight JavaScript scan runs after the page loads and applies the same rules. It adds appropriate ARIA attributes, visual indicators, and optional JavaScript-based warnings based on your configuration. Your stored content remains untouched — the plugin only alters rendered output and does not interfere with REST API responses or admin editing screens.
+WebberZone Link Warnings uses a two-layer approach to process links across your entire site. For post content, it uses WordPress's native `WP_HTML_Tag_Processor` class to efficiently parse and modify links at render time. Server-side filters also process widget output, navigation menus, comment text, and block-theme template parts when their General settings are enabled. A lightweight JavaScript scan handles remaining theme output after the page loads and applies the same rules. Your stored content remains untouched — the plugin only alters rendered output and does not interfere with REST API responses or admin editing screens.
 
 ### Why warn users about external links?
 
@@ -37,13 +37,14 @@ WebberZone Link Warnings uses a two-layer approach to process links across your 
 - __Flexible Scope__: Target external links only, or external links plus all `target="_blank"` links
 - __Customizable Indicators__: Configure visual icons, text, or screen reader-only warnings
 - __Modal Dialog__: Show a confirmation dialog before users navigate to external sites with keyboard navigation and focus management
+- __Download Link Warnings__: Warn visitors before downloading configured file types, including files hosted on your own site
 - __Dismissible Modals__: Let repeat visitors tick "Don't show again" so the modal is skipped for a session or for a set number of days, per destination domain or sitewide
 - __Redirect Screen__: Display an intermediate page with a configurable countdown before external navigation
 - __Force External__: Add a class to any link or wrapper element to force it to be treated as external — useful for tracking URLs or redirects that use internal paths
 - __Automatic Link Attributes__: Add `nofollow`, `sponsored`, `ugc`, `noopener`, `noreferrer` and `target="_blank"` to external links, affiliate links, or both — no post edits needed
 - __Affiliate Link Marking__: Flag a link or container with a class and give affiliate links their own attributes
 - __Domain Exclusions__: Allow trusted domains to treat them as internal links
-- __Sitewide Coverage__: Links in navigation menus, footers, sidebars, widgets, and theme output are processed alongside post content
+- __Sitewide Coverage__: Server-side filters process widget output, navigation menus, comment text, and block-theme template parts, while the JavaScript scan covers remaining theme output
 - __Post Type Control__: PHP-side processing is scoped to configured post types; JS scanning covers the full page regardless
 - __Built to support accessibility best practices for external link behaviour in WordPress__: Adds screen reader text, ARIA attributes, and keyboard-friendly modal confirmations
 - __Setup Wizard__: Get started quickly with a guided setup wizard on first activation
@@ -86,23 +87,33 @@ After activation, the setup wizard guides you through the initial configuration.
    - External links only
    - External links and all `target="_blank"` links
 
-3. __Customize Indicators__
+3. __Process External Content__
+   - Widget output
+   - Navigation menus
+   - Comment text
+   - Block-theme template parts
+
+4. __Customize Indicators__
    - Visual indicator type (icon, text, both, none)
    - Custom text for indicators
    - Screen reader text
 
-4. __Configure Modal/Redirect__ (if applicable)
+5. __Configure Modal/Redirect__ (if applicable)
    - Modal title and message
+   - Download modal title and message
    - Button text
    - Modal frequency, dismissal scope and "Don't show again" label
    - Redirect page content and countdown duration
 
-5. __Advanced Settings__
+6. __Advanced Settings__
    - Link attributes for external and affiliate links (`nofollow`, `sponsored`, `ugc`, open in a new tab, `noopener`, `noreferrer`)
    - Affiliate link class and wrapper class (defaults: `wzlw-affiliate`, `wzlw-affiliate-wrapper`)
+   - Downloadable file extensions (default: `pdf, zip, doc, docx, xls, xlsx, exe, dmg`)
    - Excluded domains
    - Enabled post types
    - Force-external class name (default: `wzlw-force-external`)
+
+The external content toggles apply server-side before the page is sent to the browser. The JavaScript scan continues to cover output that another plugin or theme adds after the server-side filters run.
 
 ## Letting Visitors Dismiss the Modal
 
@@ -122,6 +133,12 @@ __Dismissal Scope__ controls the reach of a dismissal:
 Everything is stored in the visitor's browser under the `wzlwDismissed` key. No cookies are set, nothing is written to the database, and no dismissal is tied to a user account, so the state is per browser rather than per person.
 
 The checkbox label comes from the __Don't Show Again Label__ setting and is registered in `wpml-config.xml` for string translation.
+
+## Warning before downloads
+
+Links whose URL path ends in a configured file extension are treated as downloadable files, even when the file is hosted on the current site. The default extensions are `pdf, zip, doc, docx, xls, xlsx, exe, dmg`. Change the comma-separated list under __Settings > WebberZone Link Warnings > Advanced > Download Links__.
+
+Download links use their own modal title and message, configured under __Display > Modal Dialog__. They also receive a download indicator icon when icons are enabled. Query strings and fragments are ignored when matching extensions, so `/download?file=report.pdf` is not matched unless the path itself ends in `.pdf`.
 
 ## Excluding Icons on Specific Links
 

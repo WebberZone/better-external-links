@@ -79,9 +79,13 @@
 
 		const linksNeedingRedirectUrl = [];
 
-		document.querySelectorAll('a:not(.wzlw-processed)').forEach(function (link) {
+		document.querySelectorAll('a').forEach(function (link) {
 			const href = link.getAttribute('href');
 			if (!href) {
+				return;
+			}
+
+			if (isServerProcessed(link)) {
 				return;
 			}
 
@@ -93,11 +97,21 @@
 			const hasNoIconClass = noIconClasses.length && noIconClasses.some(function (c) { return link.classList.contains(c); });
 
 			const isAffiliate = !!(inAffiliateWrapper || hasAffiliateClass);
-			const isExternal = !!(isAffiliate || inForceExtWrapper || hasForceExtClass || isExternalHref(href));
+			const isForced = !!(isAffiliate || inForceExtWrapper || hasForceExtClass);
+			let isExcluded = isExcludedHref(href);
+			if (link.hasAttribute('data-wzlw-excluded')) {
+				if (!isForced) {
+					return;
+				}
+				link.removeAttribute('data-wzlw-excluded');
+				isExcluded = false;
+			}
+			const isExternal = isForced || (!isExcluded && isExternalHref(href));
+			const isDownload = !isExcluded && isDownloadHref(href);
 			applyLinkAttributes(link, isExternal, isAffiliate);
 			const hasTarget = '_blank' === link.getAttribute('target');
 
-			if (!shouldProcess(isExternal, hasTarget)) {
+			if (!shouldProcess(isExternal, hasTarget, isDownload)) {
 				if (inNoIconWrapper && hasTarget) {
 					appendAriaLabel(link);
 				}
@@ -106,7 +120,7 @@
 
 			// Excluded-domain links with target=_blank reach here under scope=both.
 			// Suppress modal/data attrs but keep ARIA so screen readers know the tab will open.
-			if (!isExternal && hasTarget && isExcludedHref(href)) {
+			if (!isExternal && !isDownload && hasTarget && isExcluded) {
 				appendAriaLabel(link);
 				return;
 			}
@@ -114,6 +128,9 @@
 			link.classList.add('wzlw-processed');
 			if (isExternal) {
 				link.classList.add('wzlw-external');
+			}
+			if (isDownload) {
+				link.classList.add('wzlw-download');
 			}
 			if (inNoIconWrapper && noIconClasses.length) {
 				noIconClasses.forEach(function (c) { link.classList.add(c); });
@@ -125,8 +142,11 @@
 				link.setAttribute('data-wzlw-url', href);
 				if (isExternal) {
 					link.setAttribute('data-wzlw-external', 'true');
-				} else {
+				} else if (hasTarget) {
 					link.setAttribute('data-wzlw-blank', 'true');
+				}
+				if (isDownload) {
+					link.setAttribute('data-wzlw-download', 'true');
 				}
 				if (needsRedirectUrl) {
 					linksNeedingRedirectUrl.push(link);
@@ -134,7 +154,7 @@
 			}
 
 			if (isInlineMethod) {
-				const indicator = buildIndicatorHtml(!!(inNoIconWrapper || hasNoIconClass), hasTarget);
+				const indicator = buildIndicatorHtml(!!(inNoIconWrapper || hasNoIconClass), hasTarget, isDownload);
 				if (indicator) {
 					link.insertAdjacentHTML('beforeend', indicator);
 				}
@@ -144,6 +164,28 @@
 		if (linksNeedingRedirectUrl.length) {
 			fetchRedirectUrls(linksNeedingRedirectUrl);
 		}
+	}
+
+	/**
+	 * Return true if PHP already processed this link.
+	 *
+	 * The marker class alone is not proof: a content author can write it, and skipping
+	 * on that would let any link opt out of every warning. PHP always leaves state
+	 * alongside it — data attributes under the modal and redirect methods, an indicator
+	 * or screen reader span under the inline methods.
+	 *
+	 * @param {HTMLAnchorElement} link Link to test.
+	 * @return {boolean}
+	 */
+	function isServerProcessed(link) {
+		if (!link.classList.contains('wzlw-processed')) {
+			return false;
+		}
+
+		const stateAttributes = ['data-wzlw-url', 'data-wzlw-external', 'data-wzlw-blank', 'data-wzlw-download', 'data-wzlw-redirect-url', 'data-wzlw-excluded'];
+
+		return stateAttributes.some(function (name) { return link.hasAttribute(name); })
+			|| !!link.querySelector('.wzlw-icon, .wzlw-text, .screen-reader-text');
 	}
 
 	/**
@@ -195,7 +237,7 @@
 	 * @return {boolean}
 	 */
 	function isExternalHref(href) {
-		if (href.startsWith('/') || href.startsWith('#') || href.startsWith('?')) {
+		if ((href.startsWith('/') && !href.startsWith('//')) || href.startsWith('#') || href.startsWith('?')) {
 			return false;
 		}
 		try {
@@ -224,6 +266,33 @@
 	}
 
 	/**
+	 * Determine if a URL points to a configured downloadable file type.
+	 *
+	 * @param {string} href
+	 * @return {boolean}
+	 */
+	function isDownloadHref(href) {
+		let extensions = settings.downloadExtensions || [];
+		extensions = Array.isArray(extensions) ? extensions : [extensions];
+		extensions = extensions.map(function (extension) {
+			return String(extension).trim().toLowerCase().replace(/^\.+/, '');
+		});
+
+		try {
+			const url = new URL(href, window.location.href);
+			if (!['http:', 'https:'].includes(url.protocol)) {
+				return false;
+			}
+
+			const path = decodeURIComponent(url.pathname).replace(/\/+$/, '');
+			const match = path.match(/\.([a-z0-9]+)$/i);
+			return !!match && extensions.includes(match[1].toLowerCase());
+		} catch (e) {
+			return false;
+		}
+	}
+
+	/**
 	 * Return true if the href matches an excluded domain entry.
 	 * Unlike isExternalHref, this does not check the site host.
 	 *
@@ -231,7 +300,7 @@
 	 * @return {boolean}
 	 */
 	function isExcludedHref(href) {
-		if (href.startsWith('/') || href.startsWith('#') || href.startsWith('?')) {
+		if ((href.startsWith('/') && !href.startsWith('//')) || href.startsWith('#') || href.startsWith('?')) {
 			return false;
 		}
 		try {
@@ -263,10 +332,10 @@
 	 * @param {boolean} hasTarget
 	 * @return {boolean}
 	 */
-	function shouldProcess(isExternal, hasTarget) {
+	function shouldProcess(isExternal, hasTarget, isDownload) {
 		return 'both' === (settings.scope || 'external')
-			? (isExternal || hasTarget)
-			: isExternal;
+			? (isExternal || isDownload || hasTarget)
+			: (isExternal || isDownload);
 	}
 
 	/**
@@ -280,7 +349,7 @@
 			return;
 		}
 		const existing = link.getAttribute('aria-label');
-		if (existing) {
+		if (existing && !existing.endsWith(srText)) {
 			link.setAttribute('aria-label', existing + ', ' + srText);
 		}
 	}
@@ -291,9 +360,10 @@
 	 *
 	 * @param {boolean} suppress  True when the link has the no-icon class or is in a no-icon wrapper.
 	 * @param {boolean} hasTarget True when the link has target="_blank".
+	 * @param {boolean} isDownload True when the link points to a configured download extension.
 	 * @return {string}
 	 */
-	function buildIndicatorHtml(suppress, hasTarget) {
+	function buildIndicatorHtml(suppress, hasTarget, isDownload) {
 		const srText = settings.screenReaderText || '';
 		const srSpan = srText ? '<span class="screen-reader-text">' + escHtml(srText) + '</span>' : '';
 
@@ -305,7 +375,8 @@
 		let html = srSpan;
 
 		if ('icon' === visual || 'both' === visual) {
-			html += '<span class="wzlw-icon" aria-hidden="true"></span>';
+			const iconClass = isDownload ? 'wzlw-icon wzlw-download-icon' : 'wzlw-icon';
+			html += '<span class="' + iconClass + '" aria-hidden="true"></span>';
 		}
 		if ('text' === visual || 'both' === visual) {
 			html += '<span class="wzlw-text" aria-hidden="true">' + escHtml(settings.indicatorText || '') + '</span>';
@@ -501,19 +572,47 @@
 
 	// ─── Click handling ───────────────────────────────────────────────────────
 
+	function parseHttpUrl(value) {
+		if (typeof value !== 'string' || !value.trim()) {
+			return null;
+		}
+		try {
+			const url = new URL(value, document.baseURI);
+			return ['http:', 'https:'].includes(url.protocol) ? url : null;
+		} catch (e) {
+			return null;
+		}
+	}
+
+	function getRedirectUrl(link, destination) {
+		const url = parseHttpUrl(link.getAttribute('data-wzlw-redirect-url'));
+		const base = parseHttpUrl(settings.redirectBaseUrl);
+		const target = url ? parseHttpUrl(url.searchParams.get('url')) : null;
+		if (!url || !base || !target || url.origin !== base.origin || url.pathname !== base.pathname ||
+			url.username || url.password || url.hash || url.searchParams.getAll('url').length !== 1 ||
+			target.href !== destination.href) {
+			return null;
+		}
+		return url.href;
+	}
+
 	/**
 	 * Handle link clicks.
 	 *
 	 * @param {Event} e Click event.
 	 */
 	function handleLinkClick(e) {
-		const link = e.target.closest('a[data-wzlw-external], a[data-wzlw-blank]');
-		if (!link) {
+		const link = e.target.closest('a[data-wzlw-external], a[data-wzlw-blank], a[data-wzlw-download]');
+		if (!link || link.hasAttribute('data-wzlw-excluded')) {
+			return;
+		}
+		const destination = parseHttpUrl(link.getAttribute('href'));
+		if (!destination) {
 			return;
 		}
 
 		if ('redirect' === method || 'inline_redirect' === method) {
-			const redirectUrl = link.getAttribute('data-wzlw-redirect-url');
+			const redirectUrl = getRedirectUrl(link, destination);
 			if (redirectUrl) {
 				e.preventDefault();
 				if ('_blank' === link.getAttribute('target')) {
@@ -527,7 +626,7 @@
 
 		if ('modal' === method || 'inline_modal' === method) {
 			// Previously dismissed: let the browser follow the link untouched.
-			if (isDismissed(link.getAttribute('data-wzlw-url') || link.getAttribute('href'))) {
+			if (!modal || isDismissed(destination.href)) {
 				return;
 			}
 			e.preventDefault();
@@ -544,8 +643,14 @@
 	 * @param {HTMLElement} link Link element.
 	 */
 	function showModal(link) {
-		const url = link.getAttribute('data-wzlw-url');
-		modalUrl.textContent = url;
+		const url = parseHttpUrl(link.getAttribute('href'));
+		if (!url) {
+			return;
+		}
+		const isDownload = link.hasAttribute('data-wzlw-download');
+		modalTitle.textContent = isDownload ? (settings.downloadModalTitle || settings.modalTitle || '') : (settings.modalTitle || '');
+		modalMessage.textContent = isDownload ? (settings.downloadModalMessage || settings.modalMessage || '') : (settings.modalMessage || '');
+		modalUrl.textContent = url.href;
 		if (modalDismiss) {
 			modalDismiss.checked = false;
 		}
@@ -592,14 +697,18 @@
 		if (!currentLink) {
 			return;
 		}
-		const url = currentLink.getAttribute('data-wzlw-url');
+		const url = parseHttpUrl(currentLink.getAttribute('href'));
+		if (!url) {
+			closeModal();
+			return;
+		}
 		if (modalDismiss && modalDismiss.checked) {
-			storeDismissal(url);
+			storeDismissal(url.href);
 		}
 		if ('_blank' === currentLink.getAttribute('target')) {
-			window.open(url, '_blank', windowOpenFeatures(currentLink));
+			window.open(url.href, '_blank', windowOpenFeatures(currentLink));
 		} else {
-			window.location.href = url;
+			window.location.href = url.href;
 		}
 		closeModal();
 	}

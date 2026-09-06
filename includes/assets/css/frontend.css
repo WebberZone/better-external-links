@@ -59,6 +59,10 @@
 	content: var(--wzlw-icon-content, "↗");
 }
 
+.wzlw-download-icon::before {
+	content: var(--wzlw-download-icon-content, "⇩");
+}
+
 .wzlw-text {
 	display: inline-block;
 	margin-left: 0.25em;

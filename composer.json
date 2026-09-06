@@ -1,7 +1,7 @@
 {
     "name": "webberzone/webberzone-link-warnings",
     "description": "Enhances accessibility by warning users when links open in new windows or navigate to external sites.",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "type": "wordpress-plugin",
     "keywords": [
         "accessibility",

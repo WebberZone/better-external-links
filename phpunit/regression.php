@@ -1,0 +1,444 @@
+<?php
+
+namespace WebberZone\Link_Warnings\Admin {
+	function flush_rewrite_rules() {}
+	function set_transient( ...$args ) {}
+}
+
+namespace {
+	$core = $argv[1] ?? getenv( 'WP_CORE_DIR' );
+	if ( ! $core || ! is_file( rtrim( $core, '/\\' ) . '/wp-includes/functions.php' ) ) {
+		fwrite( STDERR, "Usage: php phpunit/regression.php /path/to/wordpress\n" );
+		exit( 1 );
+	}
+
+	define( 'ABSPATH', rtrim( $core, '/\\' ) . '/' );
+	define( 'WPINC', 'wp-includes' );
+	define( 'HOUR_IN_SECONDS', 3600 );
+	foreach ( array( 'compat', 'plugin', 'functions', 'formatting', 'http', 'kses', 'shortcodes', 'version' ) as $file ) {
+		require ABSPATH . WPINC . '/' . $file . '.php';
+	}
+	if ( is_file( ABSPATH . WPINC . '/utf8.php' ) ) {
+		require ABSPATH . WPINC . '/utf8.php';
+	}
+	// Attribute values containing "&" force named-character-reference decoding.
+	require ABSPATH . WPINC . '/class-wp-token-map.php';
+	require ABSPATH . WPINC . '/html-api/html5-named-character-references.php';
+	spl_autoload_register(
+		function ( $class ) {
+			if ( 0 === strpos( $class, 'WP_HTML_' ) ) {
+				require ABSPATH . WPINC . '/html-api/class-' . str_replace( '_', '-', strtolower( $class ) ) . '.php';
+			}
+		}
+	);
+
+	function home_url( $path = '' ) {
+		return 'https://site.test/' . ltrim( $path, '/' );
+	}
+	function wp_salt( $scheme = 'auth' ) {
+		return 'link-warnings-regression-key';
+	}
+	function __( $text, $domain = '' ) {
+		return $text;
+	}
+	function is_multisite() {
+		return false;
+	}
+	function is_admin() {
+		return ! empty( $GLOBALS['wzlw_test_is_admin'] );
+	}
+	function is_singular() {
+		return true;
+	}
+	function get_post_type() {
+		return 'post';
+	}
+
+	require dirname( __DIR__ ) . '/includes/autoloader.php';
+	require dirname( __DIR__ ) . '/includes/options-api.php';
+
+	use WebberZone\Link_Warnings\Admin\Activator;
+	use WebberZone\Link_Warnings\Content_Processor;
+	use WebberZone\Link_Warnings\Options_API;
+	use WebberZone\Link_Warnings\Redirect_Handler;
+
+	$GLOBALS['wzlw_test_settings'] = array();
+	$GLOBALS['wzlw_test_updates']  = array();
+	$GLOBALS['wp_rewrite']         = new class() {
+		public function init() {}
+	};
+	add_filter(
+		'pre_option_blog_charset',
+		static function () {
+			return 'UTF-8';
+		}
+	);
+	add_filter(
+		'pre_option_wzlw_settings',
+		static function () {
+			return $GLOBALS['wzlw_test_settings'];
+		}
+	);
+	add_filter(
+		'pre_update_option_wzlw_settings',
+		static function ( $value, $old ) {
+			$GLOBALS['wzlw_test_updates'][] = $value;
+			return $old;
+		},
+		10,
+		2
+	);
+	new Content_Processor();
+	add_filter( 'the_content', 'wpautop', 10 );
+	add_filter( 'the_content', 'do_shortcode', 11 );
+	add_shortcode(
+		'wzlw_test_form',
+		static function () {
+			return '<textarea>text</textarea>';
+		}
+	);
+
+	function settings( array $settings = array() ) {
+		$GLOBALS['wzlw_test_settings'] = array_merge(
+			array(
+				'warning_method'     => 'inline_modal',
+				'scope'              => 'external',
+				'enabled_post_types' => 'post,page',
+			),
+			$settings
+		);
+		$GLOBALS['wzlw_test_updates']  = array();
+		$GLOBALS['wzlw_test_is_admin'] = false;
+		$GLOBALS['wzlw_test_is_rest']  = false;
+		Options_API::flush_cache();
+	}
+	function is_valid_url( $url ) {
+		static $method = null;
+		if ( null === $method ) {
+			$method = new \ReflectionMethod( Redirect_Handler::class, 'is_valid_url' );
+			$method->setAccessible( true );
+		}
+		return $method->invoke( ( new \ReflectionClass( Redirect_Handler::class ) )->newInstanceWithoutConstructor(), $url );
+	}
+	function expect( $condition, $message ) {
+		if ( ! $condition ) {
+			throw new \RuntimeException( $message );
+		}
+	}
+	function process( $content ) {
+		return apply_filters( 'the_content', $content );
+	}
+	function link_attributes( $content, $href ) {
+		$processor = new \WP_HTML_Tag_Processor( $content );
+		while ( $processor->next_tag( 'A' ) ) {
+			if ( $href === $processor->get_attribute( 'href' ) ) {
+				$result = array();
+				foreach ( array( 'class', 'rel', 'aria-label', 'data-wzlw-url', 'data-wzlw-external', 'data-wzlw-blank', 'data-wzlw-download', 'data-wzlw-excluded' ) as $name ) {
+					$result[ $name ] = $processor->get_attribute( $name );
+				}
+				return $result;
+			}
+		}
+		throw new \RuntimeException( 'Expected link not found: ' . $href );
+	}
+
+	$tests = array();
+	$tests['reactivation leaves existing settings untouched']       = static function () {
+		settings(
+			array(
+				'warning_method'     => 'redirect',
+				'excluded_domains'   => 'trusted.test',
+				'enabled_post_types' => 'page',
+				'redirect_countdown' => 12,
+			)
+		);
+		Activator::activate( false );
+		expect( array() === $GLOBALS['wzlw_test_updates'], 'Activation attempted to update existing settings.' );
+	};
+	$tests['ordinary merged updates still replace supplied values'] = static function () {
+		settings( array( 'excluded_domains' => 'trusted.test' ) );
+		Options_API::update_settings( array( 'warning_method' => 'redirect' ), true );
+		$written = $GLOBALS['wzlw_test_updates'][0];
+		expect( 'redirect' === $written['warning_method'] && 'trusted.test' === $written['excluded_domains'], 'Normal update semantics changed.' );
+	};
+	foreach ( array( 'https://outside.test/page', 'https://outside.test/?a=1&b=2', 'https://outside.test/page#section', 'https://outside.test/?q=a+b', 'https://outside.test/path%20name', 'https://outside.test/?next=%2Faccount', '/go/product/?a=1&b=2#details', '//outside.test/page', '//outside.test/?a=1&b=2' ) as $destination ) {
+		$tests[ 'signed URL round trip: ' . $destination ] = static function () use ( $destination ) {
+			$url = Redirect_Handler::get_redirect_url( $destination );
+			parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $query );
+			$received = esc_url_raw( $query['url'] ?? '' );
+			expect( $destination === $received, 'Destination changed during request decoding.' );
+			expect( hash_equals( hash_hmac( 'sha256', $received, wp_salt( 'auth' ) ), $query['wzlw_sig'] ?? '' ), 'Signature no longer matches.' );
+			expect( is_valid_url( $received ), 'Redirect endpoint rejects a URL it signed itself.' );
+		};
+	}
+	$tests['protocol-relative links use their hostname'] = static function () {
+		settings();
+		$html = process( '<a href="//outside.test/">external</a><a href="//site.test/">internal</a><a href="/go/">relative</a>' );
+		expect( 'true' === link_attributes( $html, '//outside.test/' )['data-wzlw-external'], 'External network-path reference was ignored.' );
+		expect( null === link_attributes( $html, '//site.test/' )['data-wzlw-external'], 'Same-site URL marked external.' );
+		expect( null === link_attributes( $html, '/go/' )['data-wzlw-external'], 'Root-relative URL marked external.' );
+	};
+	$tests['configured download links are processed regardless of host'] = static function () {
+		settings();
+		$html = process(
+			'<a href="/files/report.pdf">internal PDF</a>'
+			. '<a href="https://outside.test/archive.ZIP?download=1#top">external ZIP</a>'
+			. '<a href="/download?file=report.pdf">not a file path</a>'
+		);
+		$internal = link_attributes( $html, '/files/report.pdf' );
+		$external = link_attributes( $html, 'https://outside.test/archive.ZIP?download=1#top' );
+		$other    = link_attributes( $html, '/download?file=report.pdf' );
+		expect( 'true' === $internal['data-wzlw-download'] && null === $internal['data-wzlw-external'], 'Internal download link was not classified as a download.' );
+		expect( 'true' === $external['data-wzlw-download'] && 'true' === $external['data-wzlw-external'], 'External download link was not classified as both external and downloadable.' );
+		expect( null === $other['data-wzlw-download'] && null === $other['data-wzlw-url'], 'A file extension in a query string was treated as a download.' );
+	};
+	$tests['download extension settings are normalized and respected'] = static function () {
+		settings( array( 'download_extensions' => ' .PDF, csv ' ) );
+		$html = process( '<a href="/files/report.pdf">PDF</a><a href="/files/data.CSV">CSV</a><a href="/files/archive.zip">ZIP</a>' );
+		expect( 'true' === link_attributes( $html, '/files/report.pdf' )['data-wzlw-download'], 'Configured PDF extension was not matched.' );
+		expect( 'true' === link_attributes( $html, '/files/data.CSV' )['data-wzlw-download'], 'Configured CSV extension was not matched.' );
+		expect( null === link_attributes( $html, '/files/archive.zip' )['data-wzlw-download'], 'Unconfigured extension was matched.' );
+	};
+	$tests['excluded domains still suppress configured downloads'] = static function () {
+		settings( array( 'excluded_domains' => 'trusted.test' ) );
+		$html = process( '<a href="https://trusted.test/report.pdf">PDF</a>' );
+		$link = link_attributes( $html, 'https://trusted.test/report.pdf' );
+		expect( 'true' === $link['data-wzlw-excluded'] && null === $link['data-wzlw-download'], 'Excluded download link was processed.' );
+	};
+	$tests['download indicators use a distinct icon class'] = static function () {
+		settings();
+		$html = process( '<a href="/files/report.pdf">PDF</a><a href="https://outside.test/page">External</a>' );
+		expect( 1 === substr_count( $html, 'wzlw-download-icon' ), 'Download link did not receive its distinct icon.' );
+		expect( 1 === substr_count( $html, 'class="wzlw-icon"' ), 'External link icon markup changed unexpectedly.' );
+	};
+	$tests['external content filters reuse the content processor'] = static function () {
+		settings();
+		$content = '<a href="https://outside.test/source/">external link</a>';
+		$results = array(
+			'widget_block_content'       => apply_filters( 'widget_block_content', $content, array(), null ),
+			'widget_text'                => apply_filters( 'widget_text', $content, array( 'visual' => false, 'filter' => false ), (object) array( 'id_base' => 'text' ) ),
+			'widget_text_content'        => apply_filters( 'widget_text_content', $content, array(), null ),
+			'widget_custom_html_content' => apply_filters( 'widget_custom_html_content', $content, array(), (object) array( 'id_base' => 'custom_html' ) ),
+			'wp_nav_menu'                => apply_filters( 'wp_nav_menu', $content, (object) array() ),
+			'comment_text'               => apply_filters( 'comment_text', $content, null, array() ),
+			'render_block'               => apply_filters( 'render_block', $content, array( 'blockName' => 'core/template-part' ) ),
+		);
+
+		foreach ( $results as $hook => $result ) {
+			expect( 'true' === link_attributes( $result, 'https://outside.test/source/' )['data-wzlw-external'], $hook . ' did not process the link.' );
+		}
+
+		$ordinary_block = apply_filters( 'render_block', $content, array( 'blockName' => 'core/paragraph' ) );
+		expect( $content === $ordinary_block, 'render_block processed a non-template-part block.' );
+	};
+	$tests['external content toggles disable their individual filters'] = static function () {
+		$cases = array(
+			'process_widgets'        => array( 'widget_block_content', array(), null ),
+			'process_nav_menus'      => array( 'wp_nav_menu', (object) array() ),
+			'process_comments'       => array( 'comment_text', null, array() ),
+			'process_template_parts' => array( 'render_block', array( 'blockName' => 'core/template-part' ) ),
+		);
+
+		foreach ( $cases as $setting_id => $arguments ) {
+			settings( array( $setting_id => 0 ) );
+			$content = '<a href="https://outside.test/disabled/">external link</a>';
+			$hook    = array_shift( $arguments );
+			$result  = apply_filters( $hook, $content, ...$arguments );
+			expect( $content === $result, $setting_id . ' did not disable ' . $hook . '.' );
+		}
+	};
+	$tests['external content processing is idempotent'] = static function () {
+		settings();
+		$content = '<a href="https://outside.test/repeated/">external link</a>';
+		$block   = array( 'blockName' => 'core/template-part' );
+		$first   = apply_filters( 'render_block', $content, $block );
+		$second  = apply_filters( 'render_block', $first, $block );
+		expect( 1 === substr_count( $second, 'wzlw-processed' ), 'A processed link was classified more than once.' );
+		expect( 1 === substr_count( $second, 'class="wzlw-icon"' ), 'A processed link received duplicate indicators.' );
+
+		settings( array( 'visual_indicator' => 'none' ) );
+		$first  = apply_filters( 'render_block', $content, $block );
+		$second = apply_filters( 'render_block', $first, $block );
+		expect( 1 === substr_count( $second, 'screen-reader-text' ), 'A screen-reader-only indicator was duplicated.' );
+	};
+	$tests['the marker class is not an opt-out for content authors'] = static function () {
+		settings( array( 'link_attributes_external' => array( 'nofollow', 'target_blank', 'noopener' ) ) );
+		$html  = process( '<a class="wzlw-processed" href="https://outside.test/marker/">go</a>' );
+		$attrs = link_attributes( $html, 'https://outside.test/marker/' );
+		expect( 'true' === $attrs['data-wzlw-external'], 'An author-supplied marker class suppressed the warning attributes.' );
+		expect( 'nofollow noopener' === $attrs['rel'], 'An author-supplied marker class suppressed the configured rel attributes.' );
+		expect( 1 === substr_count( (string) $attrs['class'], 'wzlw-processed' ), 'The marker class was duplicated.' );
+		expect( 1 === substr_count( $html, 'class="wzlw-icon"' ), 'An author-supplied marker class changed the indicator markup.' );
+	};
+	$tests['repeated classification does not duplicate classes or ARIA labels'] = static function () {
+		settings();
+		$content = '<a aria-label="Product page" href="https://outside.test/repeat/">go</a>';
+		$block   = array( 'blockName' => 'core/template-part' );
+		$first   = apply_filters( 'render_block', $content, $block );
+		$second  = apply_filters( 'render_block', $first, $block );
+		$attrs   = link_attributes( $second, 'https://outside.test/repeat/' );
+		expect( 'wzlw-processed wzlw-external' === $attrs['class'], 'Classes were duplicated on a second pass: ' . $attrs['class'] );
+		expect( 'Product page, Opens in a new window' === $attrs['aria-label'], 'The ARIA label was appended twice: ' . $attrs['aria-label'] );
+	};
+	function expect_external_content_untouched( $context ) {
+		$content = '<a href="https://outside.test/context/">external link</a>';
+		expect( $content === apply_filters( 'comment_text', $content, null, array() ), 'comment_text was processed during ' . $context . '.' );
+		expect( $content === apply_filters( 'render_block', $content, array( 'blockName' => 'core/template-part' ) ), 'render_block was processed during ' . $context . '.' );
+		expect( $content === apply_filters( 'widget_block_content', $content, array(), null ), 'widget_block_content was processed during ' . $context . '.' );
+		expect( $content === apply_filters( 'wp_nav_menu', $content, (object) array() ), 'wp_nav_menu was processed during ' . $context . '.' );
+	}
+	$tests['external content filters are skipped in admin requests'] = static function () {
+		settings();
+		$GLOBALS['wzlw_test_is_admin'] = true;
+		expect_external_content_untouched( 'an admin request' );
+	};
+	$tests['existing screen-reader markup does not suppress visual indicators'] = static function () {
+		settings();
+		$content = '<a href="https://outside.test/custom/">external link<span class="screen-reader-text">Existing context</span></a>';
+		$html    = process( $content );
+		expect( 1 === substr_count( $html, 'class="wzlw-icon"' ), 'Existing screen-reader markup suppressed the plugin indicator.' );
+	};
+	foreach ( array( 'external', 'both' ) as $scope ) {
+		$tests[ 'filtered exclusions survive PHP processing: ' . $scope ] = static function () use ( $scope ) {
+			settings( array( 'scope' => $scope ) );
+			$filter = static function ( $domains, $host ) {
+				return 'outside.test' === $host ? array( 'outside.test' ) : $domains;
+			};
+			add_filter( 'wzlw_excluded_domains', $filter, 10, 2 );
+			try {
+				$html = process( '<a href="https://outside.test/" target="_blank" aria-label="Example">test</a>' );
+				$link = link_attributes( $html, 'https://outside.test/' );
+				expect( 'true' === $link['data-wzlw-excluded'], 'PHP exclusion decision was not preserved.' );
+				expect( null === $link['data-wzlw-url'] && null === $link['data-wzlw-blank'], 'Excluded link still has warning attributes.' );
+			} finally {
+				remove_filter( 'wzlw_excluded_domains', $filter, 10 );
+			}
+		};
+	}
+	$tests['wildcard exclusions and forced affiliate precedence'] = static function () {
+		settings(
+			array(
+				'scope'                     => 'both',
+				'excluded_domains'          => '*.outside.test',
+				'link_attributes_affiliate' => array( 'sponsored' ),
+			)
+		);
+		$html = process( '<a href="//sub.outside.test/" target="_blank">excluded</a><a href="//outside.test/">base</a><a class="wzlw-affiliate" href="https://sub.outside.test/">affiliate</a>' );
+		expect( 'true' === link_attributes( $html, '//sub.outside.test/' )['data-wzlw-excluded'], 'Wildcard exclusion failed.' );
+		expect( 'true' === link_attributes( $html, '//outside.test/' )['data-wzlw-external'], 'Wildcard unexpectedly excluded its base domain.' );
+		$affiliate = link_attributes( $html, 'https://sub.outside.test/' );
+		expect( 'true' === $affiliate['data-wzlw-external'] && 'sponsored' === $affiliate['rel'], 'Affiliate did not override exclusion.' );
+	};
+	foreach ( array( 'script', 'style', 'textarea', 'title', 'iframe', 'noembed', 'noframes', 'xmp' ) as $tag ) {
+		foreach ( array( 'wzlw-no-icon-wrapper', 'wzlw-force-external-wrapper', 'wzlw-affiliate-wrapper' ) as $wrapper ) {
+			$tests[ 'atomic element does not leak wrapper state: ' . $tag . '/' . $wrapper ] = static function () use ( $tag, $wrapper ) {
+				settings( array( 'link_attributes_affiliate' => array( 'sponsored' ) ) );
+				$html = process( '<div class="' . $wrapper . '"><' . $tag . '>text</' . $tag . '><p><a href="/inside/">inside</a></p></div><p><a href="/after/">after</a><a href="https://outside.test/">external</a></p>' );
+				expect( null === link_attributes( $html, '/after/' )['data-wzlw-external'], 'Wrapper classification leaked to a following link.' );
+				$outside = link_attributes( $html, 'https://outside.test/' );
+				expect( false === strpos( (string) $outside['class'], 'wzlw-no-icon' ), 'Suppression leaked past the wrapper.' );
+				expect( null === $outside['rel'], 'Affiliate attributes leaked past the wrapper.' );
+				$atomic_wrapper = process( '<' . $tag . ' class="' . $wrapper . '">text</' . $tag . '><a href="https://outside.test/">external</a>' );
+				$outside        = link_attributes( $atomic_wrapper, 'https://outside.test/' );
+				expect( false === strpos( (string) $outside['class'], 'wzlw-no-icon' ) && null === $outside['rel'], 'An atomic wrapper affected later links.' );
+			};
+		}
+	}
+	$tests['nested ordinary wrappers still work']                              = static function () {
+		settings();
+		$html = process( '<div class="wzlw-no-icon-wrapper"><section><img src="image.png"><a href="https://inside.test/">inside</a></section></div><a href="https://outside.test/">outside</a>' );
+		expect( false !== strpos( (string) link_attributes( $html, 'https://inside.test/' )['class'], 'wzlw-no-icon' ), 'Nested suppression stopped working.' );
+		expect( false === strpos( (string) link_attributes( $html, 'https://outside.test/' )['class'], 'wzlw-no-icon' ), 'Nested suppression leaked.' );
+	};
+	$tests['shortcode-generated atomic content does not leak suppression']     = static function () {
+		settings();
+		$html = process( '<div class="wzlw-no-icon-wrapper">[wzlw_test_form]</div><a href="https://outside.test/">outside</a>' );
+		expect( false === strpos( (string) link_attributes( $html, 'https://outside.test/' )['class'], 'wzlw-no-icon' ), 'Shortcode content leaked suppression.' );
+	};
+	$tests['redirect endpoint URL validation'] = static function () {
+		$cases = array(
+			'//outside.test/page'      => true,
+			'//outside.test/'          => true,
+			'//site.test/page'         => true,
+			'//SITE.test/page'         => true,
+			'/go/product/'             => true,
+			'https://outside.test/'    => true,
+			'https://site.test/'       => true,
+			'http:evil.test'           => false,
+			'javascript:alert(1)'      => false,
+			'http://site.test/forced/' => true,
+			'mailto:a@site.test'       => false,
+		);
+		foreach ( $cases as $url => $expected ) {
+			expect( $expected === is_valid_url( $url ), 'Wrong validity for ' . $url . ' (expected ' . var_export( $expected, true ) . ').' );
+		}
+	};
+	$tests['protocol-relative links survive the full redirect round trip'] = static function () {
+		settings( array( 'warning_method' => 'redirect', 'scope' => 'both' ) );
+		$html = process( '<a href="//outside.test/page?a=1&b=2">external</a>' );
+		$link = link_attributes( $html, '//outside.test/page?a=1&b=2' );
+		expect( 'true' === $link['data-wzlw-external'], 'Network-path reference was not marked external.' );
+		$signed = Redirect_Handler::get_redirect_url( '//outside.test/page?a=1&b=2' );
+		parse_str( (string) wp_parse_url( $signed, PHP_URL_QUERY ), $query );
+		$received = esc_url_raw( $query['url'] ?? '' );
+		expect( is_valid_url( $received ), 'Signed network-path destination was rejected by the endpoint.' );
+		expect( hash_equals( hash_hmac( 'sha256', $received, wp_salt( 'auth' ) ), $query['wzlw_sig'] ?? '' ), 'Signature mismatch for network-path destination.' );
+	};
+	$tests['every signed link in redirect mode is accepted by the endpoint'] = static function () {
+		settings( array( 'warning_method' => 'redirect', 'scope' => 'both' ) );
+		$html = process(
+			'<a class="wzlw-force-external" href="https://site.test/forced/">forced internal</a>'
+			. '<div class="wzlw-force-external-wrapper"><a href="https://site.test/in-wrapper/">wrapped internal</a></div>'
+			. '<a href="https://site.test/blank/" target="_blank">internal blank</a>'
+			. '<a href="//outside.test/proto">proto external</a>'
+			. '<a href="https://outside.test/?a=1&b=2">external query</a>'
+		);
+		$processor = new \WP_HTML_Tag_Processor( $html );
+		$checked   = 0;
+		while ( $processor->next_tag( 'A' ) ) {
+			$signed = $processor->get_attribute( 'data-wzlw-redirect-url' );
+			if ( null === $signed ) {
+				continue;
+			}
+			++$checked;
+			parse_str( (string) wp_parse_url( $signed, PHP_URL_QUERY ), $query );
+			$received = esc_url_raw( $query['url'] ?? '' );
+			expect( is_valid_url( $received ), 'Endpoint rejects a URL it signed: ' . $processor->get_attribute( 'href' ) );
+			expect( hash_equals( hash_hmac( 'sha256', $received, wp_salt( 'auth' ) ), $query['wzlw_sig'] ?? '' ), 'Signature mismatch for ' . $processor->get_attribute( 'href' ) );
+		}
+		expect( 5 === $checked, 'Expected 5 signed links, saw ' . $checked . '.' );
+	};
+	$tests['uppercase closing tags receive indicators and screen-reader text'] = static function () {
+		settings();
+		$html = process( wp_kses_post( '<A href="https://outside.test/">test</A>' ) );
+		expect( 1 === substr_count( $html, 'class="wzlw-icon"' ), 'Uppercase link has no icon.' );
+		expect( 1 === substr_count( $html, 'class="screen-reader-text"' ), 'Uppercase link has no screen-reader text.' );
+		$html = process( wp_kses_post( '<A class="wzlw-no-icon" href="https://outside.test/" target="_blank">test</A>' ) );
+		expect( false === strpos( $html, 'class="wzlw-icon"' ) && 1 === substr_count( $html, 'class="screen-reader-text"' ), 'Suppressed uppercase link lost its screen-reader text.' );
+	};
+	$tests['no-icon target detection accepts single-quoted attributes'] = static function () {
+		settings();
+		$html = process( "<a class='wzlw-no-icon' href='https://outside.test/' target='_blank'>test</a>" );
+		expect( false === strpos( $html, 'class="wzlw-icon"' ) && 1 === substr_count( $html, 'class="screen-reader-text"' ), 'Single-quoted no-icon link lost its screen-reader text.' );
+	};
+
+	// Registered last: REST_REQUEST is a constant and cannot be unset for later tests.
+	$tests['external content filters are skipped in REST requests'] = static function () {
+		settings();
+		define( 'REST_REQUEST', true );
+		expect_external_content_untouched( 'a REST request' );
+	};
+
+	$failed = 0;
+	foreach ( $tests as $name => $test ) {
+		try {
+			$test();
+			echo 'PASS ', $name, PHP_EOL;
+		} catch ( \Throwable $error ) {
+			++$failed;
+			echo 'FAIL ', $name, ': ', $error->getMessage(), PHP_EOL;
+		}
+	}
+	echo count( $tests ) - $failed, '/', count( $tests ), ' passed', PHP_EOL;
+	exit( $failed ? 1 : 0 );
+}
