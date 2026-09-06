@@ -248,6 +248,8 @@ Please report security bugs found in the source code of the WebberZone Link Warn
 
 = 1.6.0 =
 
+[Version 1.6.0 Release Post](https://webberzone.com/announcements/link-warnings-v1-6/)
+
 * New: Download warnings now cover links whose URL path ends in a configured file extension, including files hosted on the current site. The default extensions are `pdf, zip, doc, docx, xls, xlsx, exe, dmg`.
 * New: Added the **Download Links** section under Advanced with the **Downloadable File Extensions** setting, plus separate **Download Modal Title** and **Download Modal Message** settings under Modal Dialog.
 * New: Download links use a distinct download indicator icon when icons are enabled. Query strings and URL fragments are ignored when matching file extensions.
