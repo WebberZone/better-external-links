@@ -374,6 +374,12 @@ class Settings {
 				'desc' => '',
 				'type' => 'header',
 			),
+			'external_content_intro'  => array(
+				'id'   => 'external_content_intro',
+				'name' => '',
+				'desc' => esc_html__( 'These settings choose where each content source is processed, not whether it is warned. Turn one off and the browser scan still adds the warning after the page loads — server-side processing is the faster and more reliable of the two, so leave these on unless a source conflicts with your theme or another plugin.', 'webberzone-link-warnings' ),
+				'type' => 'descriptive_text',
+			),
 			'process_widgets'         => array(
 				'id'      => 'process_widgets',
 				'name'    => esc_html__( 'Process Widget Output', 'webberzone-link-warnings' ),
