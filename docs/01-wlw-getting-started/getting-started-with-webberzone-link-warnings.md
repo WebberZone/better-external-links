@@ -46,8 +46,8 @@ You can dismiss the wizard at any time and configure settings manually.
 All settings are available at **Settings > Link Warnings**. The settings page is organized into three tabs:
 
 - **General** — warning method, link scope, and enabled post types.
-- **Display** — inline indicator options, modal dialog text, and redirect screen text.
-- **Advanced** — automatic link attributes (`rel`/`target`), affiliate link marking, excluded domains, and CSS class overrides.
+- **Display** — inline indicator options, modal dialog text, download modal text, and redirect screen text.
+- **Advanced** — automatic link attributes (`rel`/`target`), affiliate link marking, download extensions, excluded domains, and CSS class overrides.
 
 See the [Settings Reference](https://webberzone.com/support/knowledgebase/webberzone-link-warnings-settings-reference/) for a full description of every option.
 
@@ -63,10 +63,18 @@ For each `<a>` tag in the output, the plugin:
 4. Applies scope rules — external links only, or external links plus internal `target="_blank"` links. A link that just gained `target="_blank"` from step 3 is included here.
 5. Adds CSS classes (`wzlw-processed`, `wzlw-external`) for styling.
 6. Appends the configured screen reader text to any existing `aria-label` attribute.
-7. For modal and redirect methods, adds `data-wzlw-url` and either `data-wzlw-external` (external links) or `data-wzlw-blank` (internal links opening in a new tab, scope `both` only) — plus `data-wzlw-redirect-url` for the redirect methods specifically. These attributes are used by the frontend JavaScript.
+7. For modal and redirect methods, adds `data-wzlw-url` and either `data-wzlw-external` (external links) or `data-wzlw-blank` (internal links opening in a new tab, scope `both` only) — plus `data-wzlw-download` for configured download links and `data-wzlw-redirect-url` for the redirect methods specifically. These attributes are used by the frontend JavaScript.
 8. For inline methods, appends visual indicator markup (icon, text, or both) inside the link.
 
-Links processed by the frontend JavaScript scan (navigation menus, widgets, footers, and other theme output outside post content) go through the same affiliate detection and attribute application independently, since that markup never passes through `the_content`.
+When enabled, separate server-side filters also process block, Text, and Custom HTML widgets, classic navigation menus, displayed comment text, and complete block-theme template parts. Each source has its own toggle in the **External Content** section of the **General** tab. The filters reuse the same link classification, exclusions, indicators, and warning methods as post content.
+
+The frontend JavaScript scan still processes navigation menus, widgets, footers, and other theme output that a theme or another plugin adds after the server-side filters run. It also covers markup that does not pass through a WordPress content filter.
+
+## Download links
+
+Links whose URL path ends in a configured file extension receive a download warning. This includes files hosted on your own site. The default extensions are `pdf`, `zip`, `doc`, `docx`, `xls`, `xlsx`, `exe`, and `dmg`.
+
+Configure the list under **Advanced > Download Links**. Query strings and URL fragments are ignored when matching the file extension, and the separate **Download Modal Title** and **Download Modal Message** settings let download warnings use different text from external-link warnings.
 
 The plugin uses WordPress’s native `WP_HTML_Tag_Processor` class for HTML parsing, which avoids regex-based content manipulation for the structural changes.
 
